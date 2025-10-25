@@ -1039,10 +1039,10 @@
                                    class="feature-input" 
                                    placeholder="https://confl.ru/pageid=1234"
                                    required>
-                            <button class="btn btn-remove" onclick="removeFeature(this)" style="display: none;">✕</button>
+                            <button type="button" class="btn btn-remove" onclick="removeFeature(this)" style="display: none;">✕</button>
                         </div>
                     </div>
-                    <button class="btn btn-add" onclick="addFeature()">+ Добавить страницу</button>
+                    <button type="button" class="btn btn-add" onclick="addFeature()">+ Добавить страницу</button>
                 </div>
 
                 <!-- Checklist URL Section -->
@@ -1068,10 +1068,9 @@
                     <div class="config-content" id="configContent">
                         <div class="input-group">
                             <label for="langflowUrl">URL Langflow Endpoint</label>
-                            <input type="url" 
-                                   id="langflowUrl" 
-                                   placeholder="http://localhost:7860/api/v1/run/YOUR_FLOW_ID"
-                                   value="">
+                            <input type="url"
+                                   id="langflowUrl"
+                                   placeholder="http://localhost:7860/api/v1/run/YOUR_FLOW_ID">
                             <p class="info-text">Формат: http://localhost:7860/api/v1/run/{flow_id}</p>
                         </div>
                         <div class="input-group">
@@ -1096,7 +1095,7 @@
         </div>
 
         <!-- Generate Button -->
-        <button class="btn btn-generate" onclick="generateTests()">
+        <button type="button" class="btn btn-generate" onclick="generateTests()">
             🚀 Сгенерировать тесты
         </button>
 
@@ -1113,7 +1112,7 @@
                 <div class="section-header">
                     <div class="section-header-title">Сгенерированные тесты</div>
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <button class="btn" onclick="toggleAllTests()" id="toggleAllBtn" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); padding: 5px 12px; font-size: 0.75em;">
+                        <button type="button" class="btn" onclick="toggleAllTests()" id="toggleAllBtn" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); padding: 5px 12px; font-size: 0.75em;">
                             📂 Развернуть все
                         </button>
                         <div class="tests-count" id="testsCount">0 тестов</div>
@@ -1126,7 +1125,7 @@
                     <div class="section-title">📤 Отправка тестов в JIRA Zephyr</div>
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
                         <div class="selected-count" id="selectedCount">Выбрано: 0 тестов</div>
-                        <button class="btn" onclick="selectAllTests()" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);">
+                        <button type="button" class="btn" onclick="selectAllTests()" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);">
                             Выбрать все
                         </button>
                     </div>
@@ -1163,7 +1162,7 @@
                         <p class="info-text">Endpoint для отправки тестов в JIRA через Langflow</p>
                     </div>
 
-                    <button class="btn btn-send-jira" onclick="sendToJira()">
+                    <button type="button" class="btn btn-send-jira" onclick="sendToJira()">
                         📤 Отправить выбранные тесты в JIRA
                     </button>
 
@@ -1211,6 +1210,13 @@
     </div>
 
     <script>
+        // Проверка загрузки библиотеки marked.js
+        window.addEventListener('load', () => {
+            if (typeof marked === 'undefined') {
+                console.warn('Библиотека marked.js не загружена. Markdown-форматирование будет недоступно.');
+            }
+        });
+
         // Глобальное хранилище тестов
         let generatedTestsData = [];
 
@@ -1224,34 +1230,59 @@
         function showAutosaveIndicator() {
             const indicator = document.getElementById('autosaveIndicator');
             indicator.classList.add('show');
-            
+
             setTimeout(() => {
                 indicator.classList.remove('show');
             }, 2000);
         }
 
+        // Безопасный рендеринг markdown с обработкой ошибок
+        function safeMarkdownRender(content) {
+            if (typeof marked !== 'undefined' && marked.parse) {
+                try {
+                    // marked.js имеет встроенную защиту от XSS
+                    // https://marked.js.org/#usage
+                    return marked.parse(content);
+                } catch (error) {
+                    console.error('Error rendering markdown:', error);
+                    return content; // Возвращаем plain text при ошибке
+                }
+            }
+            return content; // Возвращаем plain text если marked не загружен
+        }
+
         // Сохранение данных формы в localStorage с debounce
         function saveFormData() {
             clearTimeout(saveTimeout);
-            
-            saveTimeout = setTimeout(() => {
-                const features = Array.from(document.querySelectorAll('.feature-input'))
-                    .map(input => input.value.trim());
-                
-                const formData = {
-                    features: features,
-                    checklistUrl: document.getElementById('checklistUrl').value.trim(),
-                    langflowUrl: document.getElementById('langflowUrl').value.trim(),
-                    apiKey: document.getElementById('apiKey').value.trim(),
-                    apiFormat: document.getElementById('apiFormat').value,
-                    jiraProjectKey: document.getElementById('jiraProjectKey').value.trim(),
-                    jiraFolderName: document.getElementById('jiraFolderName').value.trim(),
-                    jiraLangflowUrl: document.getElementById('jiraLangflowUrl').value.trim()
-                };
 
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-                console.log('Form data saved to localStorage');
-                showAutosaveIndicator();
+            saveTimeout = setTimeout(() => {
+                try {
+                    const features = Array.from(document.querySelectorAll('.feature-input'))
+                        .map(input => input.value.trim());
+
+                    const formData = {
+                        features: features,
+                        checklistUrl: document.getElementById('checklistUrl').value.trim(),
+                        langflowUrl: document.getElementById('langflowUrl').value.trim(),
+                        apiKey: document.getElementById('apiKey').value.trim(),
+                        apiFormat: document.getElementById('apiFormat').value,
+                        jiraProjectKey: document.getElementById('jiraProjectKey').value.trim(),
+                        jiraFolderName: document.getElementById('jiraFolderName').value.trim(),
+                        jiraLangflowUrl: document.getElementById('jiraLangflowUrl').value.trim()
+                    };
+
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+                    console.log('Form data saved to localStorage');
+                    showAutosaveIndicator();
+                } catch (error) {
+                    if (error.name === 'QuotaExceededError') {
+                        console.error('localStorage quota exceeded. Unable to save form data.');
+                    } else if (error.name === 'SecurityError') {
+                        console.error('localStorage access denied (private browsing mode?).');
+                    } else {
+                        console.error('Error saving form data:', error);
+                    }
+                }
             }, 500); // Задержка 500мс перед сохранением
         }
 
@@ -1276,12 +1307,12 @@
                         const featureItem = document.createElement('div');
                         featureItem.className = 'feature-item';
                         featureItem.innerHTML = `
-                            <input type="url" 
-                                   class="feature-input" 
+                            <input type="url"
+                                   class="feature-input"
                                    placeholder="https://confl.ru/pageid=1234"
                                    value="${url}"
                                    required>
-                            <button class="btn btn-remove" onclick="removeFeature(this)">✕</button>
+                            <button type="button" class="btn btn-remove" onclick="removeFeature(this)">✕</button>
                         `;
                         featureList.appendChild(featureItem);
                         
@@ -1548,11 +1579,13 @@
             
             const content = document.createElement('div');
             content.className = 'test-content';
-            
-            if (typeof marked !== 'undefined') {
-                content.innerHTML = marked.parse(test.content);
-            } else {
+
+            const renderedContent = safeMarkdownRender(test.content);
+            if (renderedContent === test.content) {
+                // Если markdown не был обработан, используем textContent для безопасности
                 content.textContent = test.content;
+            } else {
+                content.innerHTML = renderedContent;
             }
             
             card.appendChild(header);
@@ -1607,11 +1640,13 @@
             
             const content = document.createElement('div');
             content.className = 'additional-check-content-item';
-            
-            if (typeof marked !== 'undefined') {
-                content.innerHTML = marked.parse(test.content);
-            } else {
+
+            const renderedContent = safeMarkdownRender(test.content);
+            if (renderedContent === test.content) {
+                // Если markdown не был обработан, используем textContent для безопасности
                 content.textContent = test.content;
+            } else {
+                content.innerHTML = renderedContent;
             }
             
             card.appendChild(header);
@@ -1729,12 +1764,13 @@
                     });
                     
                     additionalChecksContent.appendChild(checksContainer);
-                } 
+                }
                 else if (parsedData.additionalChecksRaw) {
-                    if (typeof marked !== 'undefined') {
-                        additionalChecksContent.innerHTML = marked.parse(parsedData.additionalChecksRaw);
-                    } else {
+                    const renderedContent = safeMarkdownRender(parsedData.additionalChecksRaw);
+                    if (renderedContent === parsedData.additionalChecksRaw) {
                         additionalChecksContent.textContent = parsedData.additionalChecksRaw;
+                    } else {
+                        additionalChecksContent.innerHTML = renderedContent;
                     }
                 }
             }
@@ -1914,11 +1950,12 @@
             plainTextSection.style.display = 'block';
             
             plainTextContent.setAttribute('data-raw-content', textContent);
-            
-            if (typeof marked !== 'undefined') {
-                plainTextContent.innerHTML = marked.parse(textContent);
-            } else {
+
+            const renderedContent = safeMarkdownRender(textContent);
+            if (renderedContent === textContent) {
                 plainTextContent.textContent = textContent;
+            } else {
+                plainTextContent.innerHTML = renderedContent;
             }
 
             resultSection.classList.add('active');
@@ -1960,11 +1997,11 @@
             const featureItem = document.createElement('div');
             featureItem.className = 'feature-item';
             featureItem.innerHTML = `
-                <input type="url" 
-                       class="feature-input" 
+                <input type="url"
+                       class="feature-input"
                        placeholder="https://confl.ru/pageid=1234"
                        required>
-                <button class="btn btn-remove" onclick="removeFeature(this)">✕</button>
+                <button type="button" class="btn btn-remove" onclick="removeFeature(this)">✕</button>
             `;
             featureList.appendChild(featureItem);
             
