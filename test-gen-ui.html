@@ -1,0 +1,2179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор Интеграционных Тестов</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 10px;
+            line-height: 1.4;
+        }
+
+        .container {
+            max-width: 95%;
+            width: 100%;
+            margin: 0 auto;
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 3px;
+            font-size: 1.3em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            font-size: 0.75em;
+            font-weight: 400;
+        }
+
+        .section {
+            margin-bottom: 10px;
+        }
+
+        .form-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        @media (min-width: 900px) {
+            .form-layout {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .form-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .section-title {
+            font-size: 0.85em;
+            margin-bottom: 6px;
+            color: #f1f5f9;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            letter-spacing: -0.01em;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 2px;
+            height: 12px;
+            background: linear-gradient(180deg, #3b82f6 0%, #06b6d4 100%);
+            border-radius: 2px;
+        }
+
+        .input-group {
+            margin-bottom: 6px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 3px;
+            color: #cbd5e1;
+            font-size: 0.75em;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        select {
+            width: 100%;
+            padding: 6px 8px;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 6px;
+            color: #f1f5f9;
+            font-size: 0.8em;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        input[type="text"]:focus,
+        input[type="url"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: rgba(30, 41, 59, 0.8);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        input::placeholder {
+            color: #64748b;
+        }
+
+        .feature-item {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+            align-items: center;
+        }
+
+        .feature-item input {
+            flex: 1;
+        }
+
+        .btn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75em;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-add {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-add:hover {
+            background: rgba(59, 130, 246, 0.25);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateY(-1px);
+        }
+
+        #toggleAllBtn:hover {
+            background: rgba(59, 130, 246, 0.25);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .btn-remove {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 5px 10px;
+        }
+
+        .btn-remove:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        .btn-generate {
+            width: auto;
+            max-width: 300px;
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            font-size: 0.85em;
+            margin-top: 10px;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+            border-radius: 7px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-generate:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-send-jira {
+            width: auto;
+            max-width: 350px;
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            font-size: 0.85em;
+            margin-top: 8px;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+            border-radius: 7px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-send-jira:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-send-jira:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .config-section {
+            background: rgba(30, 41, 59, 0.4);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            height: 100%;
+            position: relative;
+        }
+
+        .config-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 8px;
+        }
+
+        .config-header:hover .section-title {
+            color: #60a5fa;
+        }
+
+        .toggle-icon {
+            font-size: 1em;
+            color: #64748b;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        .config-content {
+            max-height: 350px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            opacity: 1;
+        }
+
+        .config-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .jira-section {
+            background: rgba(16, 185, 129, 0.08);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            margin-top: 12px;
+            display: none;
+        }
+
+        .jira-section.active {
+            display: block;
+        }
+
+        .jira-section .section-title {
+            color: #f1f5f9;
+        }
+
+        .jira-section .section-title::before {
+            background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .loader.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 2px solid rgba(59, 130, 246, 0.1);
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 6px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            color: #94a3b8;
+            font-size: 0.75em;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 12px;
+        }
+
+        .result-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tests-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        @media (min-width: 1400px) {
+            .tests-container {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            }
+        }
+
+        @media (min-width: 1920px) {
+            .tests-container {
+                grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            }
+        }
+
+        .test-card {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .test-card.collapsed {
+            padding: 8px 10px;
+        }
+
+        .test-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .test-card.selected {
+            border-color: rgba(16, 185, 129, 0.6);
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        .test-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+            gap: 6px;
+        }
+
+        .test-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        .test-header-left:hover .test-id {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+        }
+
+        .test-header-left:active {
+            transform: scale(0.98);
+        }
+
+        /* Кастомный чекбокс */
+        .test-checkbox {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            position: relative;
+            appearance: none;
+            -webkit-appearance: none;
+            background: rgba(30, 41, 59, 0.8);
+            border: 2px solid rgba(59, 130, 246, 0.4);
+            border-radius: 5px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .test-checkbox:hover {
+            border-color: rgba(59, 130, 246, 0.8);
+            background: rgba(59, 130, 246, 0.15);
+            transform: scale(1.05);
+        }
+
+        .test-checkbox:active {
+            transform: scale(0.95);
+        }
+
+        .test-checkbox:checked {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-color: #10b981;
+            animation: checkboxPulse 0.3s ease;
+        }
+
+        @keyframes checkboxPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .test-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            animation: checkmarkAppear 0.2s ease;
+        }
+
+        @keyframes checkmarkAppear {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .test-id {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 0.75em;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .test-id::after {
+            content: '▼';
+            font-size: 0.7em;
+            transition: transform 0.3s ease;
+        }
+
+        .test-card.collapsed .test-id::after {
+            transform: rotate(-90deg);
+        }
+
+        .test-copy-btn {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 4px 8px;
+            font-size: 0.7em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .test-copy-btn:hover {
+            background: rgba(59, 130, 246, 0.25);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .test-copy-btn.copied {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .test-content {
+            font-size: 0.8em;
+            line-height: 1.5;
+            color: #cbd5e1;
+            max-height: 2000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .test-card.collapsed .test-content {
+            max-height: 0;
+            opacity: 0;
+            margin-bottom: 0;
+        }
+
+        .test-card.collapsed .test-card-header {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .test-content h1, .test-content h2, .test-content h3, .test-content h4 {
+            color: #f1f5f9;
+            margin-top: 8px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .test-content h1 { font-size: 1.3em; }
+        .test-content h2 { font-size: 1.2em; }
+        .test-content h3 { font-size: 1.1em; }
+        .test-content h4 { font-size: 1em; }
+
+        .test-content code {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #93c5fd;
+        }
+
+        .test-content pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 8px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 8px 0;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .test-content pre code {
+            background: none;
+            padding: 0;
+            color: #cbd5e1;
+        }
+
+        .test-content ul, .test-content ol {
+            margin: 6px 0;
+            padding-left: 20px;
+        }
+
+        .test-content li {
+            margin: 4px 0;
+        }
+
+        .test-content blockquote {
+            border-left: 2px solid #3b82f6;
+            padding-left: 10px;
+            margin: 8px 0;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .test-content strong {
+            color: #f1f5f9;
+            font-weight: 600;
+        }
+
+        .test-content em {
+            color: #cbd5e1;
+        }
+
+        .test-content a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+
+        .test-content a:hover {
+            text-decoration: underline;
+        }
+
+        .test-content p {
+            margin: 5px 0;
+        }
+
+        .additional-checks-section {
+            background: rgba(251, 146, 60, 0.08);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(251, 146, 60, 0.25);
+            margin-bottom: 10px;
+        }
+
+        .additional-checks-title {
+            font-size: 0.85em;
+            margin-bottom: 8px;
+            color: #f1f5f9;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .additional-checks-title::before {
+            content: '⚠️';
+            font-size: 1em;
+        }
+
+        .additional-check-card {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(251, 146, 60, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .additional-check-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            border-color: rgba(251, 146, 60, 0.5);
+        }
+
+        .additional-check-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(251, 146, 60, 0.2);
+        }
+
+        .additional-check-id {
+            background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 0.75em;
+        }
+
+        .additional-check-copy-btn {
+            background: rgba(251, 146, 60, 0.15);
+            color: #fb923c;
+            border: 1px solid rgba(251, 146, 60, 0.3);
+            padding: 4px 8px;
+            font-size: 0.7em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .additional-check-copy-btn:hover {
+            background: rgba(251, 146, 60, 0.25);
+            border-color: rgba(251, 146, 60, 0.5);
+        }
+
+        .additional-check-copy-btn.copied {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .additional-check-content-item {
+            font-size: 0.8em;
+            line-height: 1.5;
+            color: #cbd5e1;
+        }
+
+        .additional-check-content-item h1, .additional-check-content-item h2, 
+        .additional-check-content-item h3, .additional-check-content-item h4 {
+            color: #f1f5f9;
+            margin-top: 8px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .additional-check-content-item h1 { font-size: 1.3em; }
+        .additional-check-content-item h2 { font-size: 1.2em; }
+        .additional-check-content-item h3 { font-size: 1.1em; }
+        .additional-check-content-item h4 { font-size: 1em; }
+
+        .additional-check-content-item code {
+            background: rgba(251, 146, 60, 0.15);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #fdba74;
+        }
+
+        .additional-check-content-item pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 8px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 8px 0;
+            border: 1px solid rgba(251, 146, 60, 0.2);
+        }
+
+        .additional-check-content-item pre code {
+            background: none;
+            padding: 0;
+            color: #cbd5e1;
+        }
+
+        .additional-check-content-item ul, .additional-check-content-item ol {
+            margin: 6px 0;
+            padding-left: 20px;
+        }
+
+        .additional-check-content-item li {
+            margin: 4px 0;
+        }
+
+        .additional-check-content-item blockquote {
+            border-left: 2px solid #fb923c;
+            padding-left: 10px;
+            margin: 8px 0;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .additional-check-content-item strong {
+            color: #f1f5f9;
+            font-weight: 600;
+        }
+
+        .additional-check-content-item em {
+            color: #cbd5e1;
+        }
+
+        .additional-check-content-item a {
+            color: #fb923c;
+            text-decoration: none;
+        }
+
+        .additional-check-content-item a:hover {
+            text-decoration: underline;
+        }
+
+        .additional-check-content-item p {
+            margin: 5px 0;
+        }
+
+        .additional-checks-content {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            font-size: 0.8em;
+            line-height: 1.5;
+            color: #cbd5e1;
+        }
+
+        .plain-text-content {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            max-height: 70vh;
+            overflow-y: auto;
+            font-size: 0.8em;
+            line-height: 1.5;
+            color: #cbd5e1;
+        }
+
+        .plain-text-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .plain-text-content::-webkit-scrollbar-track {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 4px;
+        }
+
+        .plain-text-content::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .section-header-title {
+            font-size: 1em;
+            color: #f1f5f9;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .section-header-title::before {
+            content: '✓';
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+
+        .tests-count {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+
+        .result-title {
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            color: #f1f5f9;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .result-title-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-content {
+            background: rgba(239, 68, 68, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 0.85em;
+            line-height: 1.6;
+            color: #fca5a5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        #errorContent {
+            background: rgba(239, 68, 68, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 0.85em;
+            line-height: 1.6;
+            color: #fca5a5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .error-icon {
+            font-size: 1.2em;
+            color: #f87171;
+        }
+
+        .success-icon {
+            font-size: 1.2em;
+            color: #10b981;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .btn-copy {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 5px 10px;
+            font-size: 0.75em;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-copy:hover {
+            background: rgba(59, 130, 246, 0.25);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .btn-copy.copied {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .info-text {
+            font-size: 0.7em;
+            color: #64748b;
+            margin-top: 3px;
+            font-style: normal;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        .selected-count {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+
+        .jira-status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 7px;
+            display: none;
+        }
+
+        .jira-status.success {
+            display: block;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+        }
+
+        .jira-status.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        .jira-status-item {
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            font-size: 0.9em;
+        }
+
+        .jira-status-item:last-child {
+            border-bottom: none;
+        }
+
+        .autosave-indicator {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 5px;
+            font-size: 0.7em;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .autosave-indicator.show {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Генератор Интеграционных Тестов</h1>
+        <p class="subtitle">Автоматическая генерация тестов на основе требований и чек-листов</p>
+
+        <div class="form-layout">
+            <!-- Левая колонка: Feature URLs и Checklist -->
+            <div class="form-column">
+                <!-- Feature URLs Section -->
+                <div class="section">
+                    <div class="section-title">Страницы с описанием фичи</div>
+                    <div id="featureList">
+                        <div class="feature-item">
+                            <input type="url" 
+                                   class="feature-input" 
+                                   placeholder="https://confl.ru/pageid=1234"
+                                   required>
+                            <button class="btn btn-remove" onclick="removeFeature(this)" style="display: none;">✕</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-add" onclick="addFeature()">+ Добавить страницу</button>
+                </div>
+
+                <!-- Checklist URL Section -->
+                <div class="section">
+                    <div class="section-title">Чек-лист тестировщика</div>
+                    <div class="input-group">
+                        <label for="checklistUrl">Ссылка на чек-лист в Confluence</label>
+                        <input type="url" 
+                               id="checklistUrl" 
+                               placeholder="https://confl.ru/pageid=12346"
+                               required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка: Langflow Configuration -->
+            <div class="form-column">
+                <div class="section config-section">
+                    <div class="config-header" onclick="toggleConfig()">
+                        <div class="section-title">⚙️ Настройки подключения к Langflow</div>
+                        <span class="toggle-icon" id="toggleIcon">▼</span>
+                    </div>
+                    <div class="config-content" id="configContent">
+                        <div class="input-group">
+                            <label for="langflowUrl">URL Langflow Endpoint</label>
+                            <input type="url" 
+                                   id="langflowUrl" 
+                                   placeholder="http://localhost:7860/api/v1/run/YOUR_FLOW_ID"
+                                   value="">
+                            <p class="info-text">Формат: http://localhost:7860/api/v1/run/{flow_id}</p>
+                        </div>
+                        <div class="input-group">
+                            <label for="apiKey">API Key (опционально)</label>
+                            <input type="text" 
+                                   id="apiKey" 
+                                   placeholder="Ваш API ключ">
+                            <p class="info-text">Оставьте пустым, если не требуется авторизация</p>
+                        </div>
+                        <div class="input-group">
+                            <label for="apiFormat">Формат API</label>
+                            <select id="apiFormat">
+                                <option value="standard">Стандартный (input_value)</option>
+                                <option value="inputs">С использованием inputs</option>
+                                <option value="message">С использованием message</option>
+                            </select>
+                            <p class="info-text">Выберите формат в зависимости от версии Langflow. Session ID генерируется автоматически для каждого запроса.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generate Button -->
+        <button class="btn btn-generate" onclick="generateTests()">
+            🚀 Сгенерировать тесты
+        </button>
+
+        <!-- Loader -->
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <div class="loader-text">Генерация тестов в процессе...</div>
+        </div>
+
+        <!-- Result Section -->
+        <div class="result-section" id="resultSection">
+            <!-- Tests Section -->
+            <div id="testsSection" style="display: none;">
+                <div class="section-header">
+                    <div class="section-header-title">Сгенерированные тесты</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="btn" onclick="toggleAllTests()" id="toggleAllBtn" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); padding: 5px 12px; font-size: 0.75em;">
+                            📂 Развернуть все
+                        </button>
+                        <div class="tests-count" id="testsCount">0 тестов</div>
+                    </div>
+                </div>
+                <div class="tests-container" id="testsContainer"></div>
+
+                <!-- JIRA Export Section -->
+                <div class="jira-section" id="jiraSection">
+                    <div class="section-title">📤 Отправка тестов в JIRA Zephyr</div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <div class="selected-count" id="selectedCount">Выбрано: 0 тестов</div>
+                        <button class="btn" onclick="selectAllTests()" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);">
+                            Выбрать все
+                        </button>
+                    </div>
+                    
+                    <div class="form-layout">
+                        <div class="form-column">
+                            <div class="input-group">
+                                <label for="jiraProjectKey">Project Key</label>
+                                <input type="text" 
+                                       id="jiraProjectKey" 
+                                       placeholder="PROJ"
+                                       required>
+                                <p class="info-text">Ключ проекта в JIRA</p>
+                            </div>
+                        </div>
+                        <div class="form-column">
+                            <div class="input-group">
+                                <label for="jiraFolderName">Название папки</label>
+                                <input type="text" 
+                                       id="jiraFolderName" 
+                                       placeholder="Sprint 1 / Feature Tests"
+                                       required>
+                                <p class="info-text">Путь к папке в JIRA Zephyr</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="jiraLangflowUrl">URL Langflow Endpoint для JIRA</label>
+                        <input type="url" 
+                               id="jiraLangflowUrl" 
+                               placeholder="http://localhost:7860/api/v1/run/JIRA_FLOW_ID"
+                               required>
+                        <p class="info-text">Endpoint для отправки тестов в JIRA через Langflow</p>
+                    </div>
+
+                    <button class="btn btn-send-jira" onclick="sendToJira()">
+                        📤 Отправить выбранные тесты в JIRA
+                    </button>
+
+                    <div class="jira-status" id="jiraStatus"></div>
+                </div>
+            </div>
+
+            <!-- Additional Checks Section -->
+            <div id="additionalChecksSection" style="display: none;">
+                <div class="additional-checks-section">
+                    <div class="additional-checks-title">Дополнительные проверки</div>
+                    <div class="additional-checks-content" id="additionalChecksContent"></div>
+                </div>
+            </div>
+
+            <!-- Plain Text Result Section -->
+            <div id="plainTextSection" style="display: none;">
+                <div class="result-title">
+                    <div class="result-title-text">
+                        <span class="success-icon">✓</span>
+                        <span>Результат генерации</span>
+                    </div>
+                    <button class="btn-copy" id="copyPlainTextBtn" onclick="copyPlainTextResult()">📋 Копировать</button>
+                </div>
+                <div class="plain-text-content" id="plainTextContent"></div>
+            </div>
+
+            <!-- Error Section -->
+            <div id="errorSection" style="display: none;">
+                <div class="result-title">
+                    <div class="result-title-text">
+                        <span id="resultIcon" class="error-icon">✕</span>
+                        <span id="resultTitle">Ошибка генерации</span>
+                    </div>
+                </div>
+                <div class="result-content" id="errorContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Autosave Indicator -->
+    <div class="autosave-indicator" id="autosaveIndicator">
+        <span>✓</span>
+        <span>Данные сохранены</span>
+    </div>
+
+    <script>
+        // Глобальное хранилище тестов
+        let generatedTestsData = [];
+
+        // Ключ для localStorage
+        const STORAGE_KEY = 'testGeneratorFormData';
+
+        // Таймер для автосохранения
+        let saveTimeout = null;
+
+        // Показать индикатор автосохранения
+        function showAutosaveIndicator() {
+            const indicator = document.getElementById('autosaveIndicator');
+            indicator.classList.add('show');
+            
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+
+        // Сохранение данных формы в localStorage с debounce
+        function saveFormData() {
+            clearTimeout(saveTimeout);
+            
+            saveTimeout = setTimeout(() => {
+                const features = Array.from(document.querySelectorAll('.feature-input'))
+                    .map(input => input.value.trim());
+                
+                const formData = {
+                    features: features,
+                    checklistUrl: document.getElementById('checklistUrl').value.trim(),
+                    langflowUrl: document.getElementById('langflowUrl').value.trim(),
+                    apiKey: document.getElementById('apiKey').value.trim(),
+                    apiFormat: document.getElementById('apiFormat').value,
+                    jiraProjectKey: document.getElementById('jiraProjectKey').value.trim(),
+                    jiraFolderName: document.getElementById('jiraFolderName').value.trim(),
+                    jiraLangflowUrl: document.getElementById('jiraLangflowUrl').value.trim()
+                };
+
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+                console.log('Form data saved to localStorage');
+                showAutosaveIndicator();
+            }, 500); // Задержка 500мс перед сохранением
+        }
+
+        // Загрузка данных формы из localStorage
+        function loadFormData() {
+            try {
+                const savedData = localStorage.getItem(STORAGE_KEY);
+                if (!savedData) {
+                    console.log('No saved data found');
+                    return;
+                }
+
+                const formData = JSON.parse(savedData);
+                console.log('Loading saved form data:', formData);
+
+                // Восстановление feature URLs
+                if (formData.features && formData.features.length > 0) {
+                    const featureList = document.getElementById('featureList');
+                    featureList.innerHTML = '';
+                    
+                    formData.features.forEach((url, index) => {
+                        const featureItem = document.createElement('div');
+                        featureItem.className = 'feature-item';
+                        featureItem.innerHTML = `
+                            <input type="url" 
+                                   class="feature-input" 
+                                   placeholder="https://confl.ru/pageid=1234"
+                                   value="${url}"
+                                   required>
+                            <button class="btn btn-remove" onclick="removeFeature(this)">✕</button>
+                        `;
+                        featureList.appendChild(featureItem);
+                        
+                        // Добавляем event listener для нового поля
+                        const input = featureItem.querySelector('.feature-input');
+                        input.addEventListener('input', saveFormData);
+                    });
+                    
+                    updateRemoveButtons();
+                }
+
+                // Восстановление остальных полей
+                if (formData.checklistUrl) {
+                    document.getElementById('checklistUrl').value = formData.checklistUrl;
+                }
+                if (formData.langflowUrl) {
+                    document.getElementById('langflowUrl').value = formData.langflowUrl;
+                }
+                if (formData.apiKey) {
+                    document.getElementById('apiKey').value = formData.apiKey;
+                }
+                if (formData.apiFormat) {
+                    document.getElementById('apiFormat').value = formData.apiFormat;
+                }
+                if (formData.jiraProjectKey) {
+                    document.getElementById('jiraProjectKey').value = formData.jiraProjectKey;
+                }
+                if (formData.jiraFolderName) {
+                    document.getElementById('jiraFolderName').value = formData.jiraFolderName;
+                }
+                if (formData.jiraLangflowUrl) {
+                    document.getElementById('jiraLangflowUrl').value = formData.jiraLangflowUrl;
+                }
+
+                console.log('Form data successfully loaded from localStorage');
+            } catch (error) {
+                console.error('Error loading form data:', error);
+            }
+        }
+
+        // Инициализация event listeners для автосохранения
+        function initAutoSave() {
+            // Сохранение при изменении полей
+            document.getElementById('checklistUrl').addEventListener('input', saveFormData);
+            document.getElementById('langflowUrl').addEventListener('input', saveFormData);
+            document.getElementById('apiKey').addEventListener('input', saveFormData);
+            document.getElementById('apiFormat').addEventListener('change', saveFormData);
+            document.getElementById('jiraProjectKey').addEventListener('input', saveFormData);
+            document.getElementById('jiraFolderName').addEventListener('input', saveFormData);
+            document.getElementById('jiraLangflowUrl').addEventListener('input', saveFormData);
+
+            // Сохранение для существующих feature inputs
+            document.querySelectorAll('.feature-input').forEach(input => {
+                input.addEventListener('input', saveFormData);
+            });
+
+            console.log('Autosave initialized');
+        }
+
+        // Генерация Session ID с датой и временем
+        function generateSessionId() {
+            const now = new Date();
+            
+            // Форматирование даты и времени: YYYYMMDD_HHMMSS
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            const dateTimeString = `${year}${month}${day}_${hours}${minutes}${seconds}`;
+            
+            // Генерация случайной строки (8 символов)
+            const randomString = Math.random().toString(36).substring(2, 10);
+            
+            // Комбинируем дату, время и случайную строку
+            const sessionId = `${dateTimeString}_${randomString}`;
+            
+            console.log('Generated Session ID:', sessionId);
+            return sessionId;
+        }
+
+        // Переключение видимости настроек Langflow
+        function toggleConfig() {
+            const configContent = document.getElementById('configContent');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            configContent.classList.toggle('collapsed');
+            toggleIcon.classList.toggle('rotated');
+        }
+
+        // Улучшенный парсинг XML с поддержкой невалидного формата
+        function parseXMLResponse(xmlString) {
+            const result = {
+                tests: [],
+                additionalChecks: [],
+                additionalChecksRaw: ''
+            };
+
+            try {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+                
+                const parserError = xmlDoc.querySelector('parsererror');
+                
+                if (!parserError) {
+                    const mainTestsNode = xmlDoc.querySelector('tests');
+                    if (mainTestsNode) {
+                        const testNodes = mainTestsNode.querySelectorAll(':scope > test');
+                        testNodes.forEach(testNode => {
+                            const id = testNode.getAttribute('id') || testNode.getAttribute('name') || `Тест ${result.tests.length + 1}`;
+                            const content = testNode.textContent.trim();
+                            if (content) {
+                                result.tests.push({ id, content });
+                            }
+                        });
+                    }
+
+                    const additionalChecksNode = xmlDoc.querySelector('additional_checks');
+                    if (additionalChecksNode) {
+                        const checkNodes = additionalChecksNode.querySelectorAll('check');
+                        
+                        if (checkNodes.length > 0) {
+                            checkNodes.forEach(checkNode => {
+                                const id = checkNode.getAttribute('id') || checkNode.getAttribute('name') || `Проверка ${result.additionalChecks.length + 1}`;
+                                const content = checkNode.textContent.trim();
+                                if (content) {
+                                    result.additionalChecks.push({ id, content });
+                                }
+                            });
+                        } else {
+                            result.additionalChecksRaw = additionalChecksNode.textContent.trim();
+                        }
+                    }
+
+                    if (result.tests.length > 0 || result.additionalChecks.length > 0 || result.additionalChecksRaw) {
+                        return result;
+                    }
+                }
+            } catch (e) {
+                console.warn('DOM parsing failed, trying regex approach:', e);
+            }
+
+            console.log('Using regex-based parsing for potentially invalid XML');
+            
+            const testRegex = /<test[^>]*(?:name|id)\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)(?:<\/test>|(?=<test)|(?=<\/tests>)|(?=<additional_checks>)|$)/gi;
+            
+            let testMatch;
+            while ((testMatch = testRegex.exec(xmlString)) !== null) {
+                const id = testMatch[1] || `Тест ${result.tests.length + 1}`;
+                let content = testMatch[2].trim();
+                content = content.replace(/<\/?tests>/gi, '').trim();
+                
+                if (content && !content.startsWith('<additional_checks')) {
+                    result.tests.push({ id, content });
+                }
+            }
+
+            if (result.tests.length === 0) {
+                const simpleTestRegex = /<test[^>]*>([\s\S]*?)(?:<\/test>|(?=<test)|(?=<\/tests>)|(?=<additional_checks>))/gi;
+                let index = 1;
+                while ((testMatch = simpleTestRegex.exec(xmlString)) !== null) {
+                    let content = testMatch[1].trim();
+                    content = content.replace(/<\/?tests>/gi, '').trim();
+                    
+                    if (content && !content.startsWith('<additional_checks')) {
+                        result.tests.push({ 
+                            id: `Тест ${index}`, 
+                            content 
+                        });
+                        index++;
+                    }
+                }
+            }
+
+            const additionalChecksMatch = xmlString.match(/<additional_checks[^>]*>([\s\S]*?)(?:<\/additional_checks>|$)/i);
+            
+            if (additionalChecksMatch) {
+                const checksContent = additionalChecksMatch[1];
+                const checkRegex = /<check[^>]*(?:name|id)\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)(?:<\/check>|(?=<check)|(?=<\/additional_checks>)|$)/gi;
+                
+                let checkMatch;
+                while ((checkMatch = checkRegex.exec(checksContent)) !== null) {
+                    const id = checkMatch[1] || `Проверка ${result.additionalChecks.length + 1}`;
+                    const content = checkMatch[2].trim();
+                    
+                    if (content) {
+                        result.additionalChecks.push({ id, content });
+                    }
+                }
+
+                if (result.additionalChecks.length === 0) {
+                    const cleanContent = checksContent
+                        .replace(/<check[^>]*>/gi, '')
+                        .replace(/<\/check>/gi, '')
+                        .trim();
+                    
+                    if (cleanContent) {
+                        result.additionalChecksRaw = cleanContent;
+                    }
+                }
+            }
+
+            console.log('Parsed result:', result);
+            return result;
+        }
+
+        // Создание карточки теста с чекбоксом
+        function createTestCard(test, index) {
+            const card = document.createElement('div');
+            card.className = 'test-card collapsed'; // Изначально свернута
+            card.dataset.testIndex = index;
+            
+            const header = document.createElement('div');
+            header.className = 'test-card-header';
+            
+            const headerLeft = document.createElement('div');
+            headerLeft.className = 'test-header-left';
+            headerLeft.title = 'Нажмите для сворачивания/разворачивания';
+            
+            // Клик по заголовку сворачивает/разворачивает тест
+            headerLeft.onclick = (e) => {
+                // Не сворачивать, если кликнули по чекбоксу
+                if (e.target.type === 'checkbox') {
+                    return;
+                }
+                toggleTestCard(card);
+            };
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'test-checkbox';
+            checkbox.dataset.testIndex = index;
+            checkbox.onclick = (e) => {
+                e.stopPropagation(); // Предотвратить сворачивание при клике на чекбокс
+            };
+            checkbox.onchange = (e) => {
+                if (e.target.checked) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+                updateSelectedCount();
+            };
+            
+            const testId = document.createElement('div');
+            testId.className = 'test-id';
+            testId.textContent = test.id;
+            
+            headerLeft.appendChild(checkbox);
+            headerLeft.appendChild(testId);
+            
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'test-copy-btn';
+            copyBtn.textContent = '📋 Копировать';
+            copyBtn.onclick = (e) => {
+                e.stopPropagation(); // Предотвратить сворачивание при клике на кнопку
+                copyTestContent(test.content, copyBtn);
+            };
+            
+            header.appendChild(headerLeft);
+            header.appendChild(copyBtn);
+            
+            const content = document.createElement('div');
+            content.className = 'test-content';
+            
+            if (typeof marked !== 'undefined') {
+                content.innerHTML = marked.parse(test.content);
+            } else {
+                content.textContent = test.content;
+            }
+            
+            card.appendChild(header);
+            card.appendChild(content);
+            
+            return card;
+        }
+
+        // Переключение состояния конкретной карточки теста
+        function toggleTestCard(card) {
+            card.classList.toggle('collapsed');
+        }
+
+        // Развернуть/свернуть все тесты
+        function toggleAllTests() {
+            const cards = document.querySelectorAll('.test-card');
+            const toggleBtn = document.getElementById('toggleAllBtn');
+            
+            // Проверяем, все ли тесты свёрнуты
+            const allCollapsed = Array.from(cards).every(card => card.classList.contains('collapsed'));
+            
+            if (allCollapsed) {
+                // Развернуть все
+                cards.forEach(card => card.classList.remove('collapsed'));
+                toggleBtn.innerHTML = '📁 Свернуть все';
+            } else {
+                // Свернуть все
+                cards.forEach(card => card.classList.add('collapsed'));
+                toggleBtn.innerHTML = '📂 Развернуть все';
+            }
+        }
+
+        // Создание карточки для дополнительной проверки
+        function createAdditionalCheckCard(test) {
+            const card = document.createElement('div');
+            card.className = 'additional-check-card';
+            
+            const header = document.createElement('div');
+            header.className = 'additional-check-card-header';
+            
+            const testId = document.createElement('div');
+            testId.className = 'additional-check-id';
+            testId.textContent = test.id;
+            
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'additional-check-copy-btn';
+            copyBtn.textContent = '📋 Копировать';
+            copyBtn.onclick = () => copyTestContent(test.content, copyBtn);
+            
+            header.appendChild(testId);
+            header.appendChild(copyBtn);
+            
+            const content = document.createElement('div');
+            content.className = 'additional-check-content-item';
+            
+            if (typeof marked !== 'undefined') {
+                content.innerHTML = marked.parse(test.content);
+            } else {
+                content.textContent = test.content;
+            }
+            
+            card.appendChild(header);
+            card.appendChild(content);
+            
+            return card;
+        }
+
+        // Копирование содержимого теста
+        async function copyTestContent(content, button) {
+            try {
+                await navigator.clipboard.writeText(content);
+                
+                const originalText = button.textContent;
+                button.textContent = '✓ Скопировано';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+                
+            } catch (err) {
+                console.error('Ошибка копирования:', err);
+                button.textContent = '✕ Ошибка';
+                setTimeout(() => {
+                    button.textContent = '📋 Копировать';
+                }, 2000);
+            }
+        }
+
+        // Обновление счетчика выбранных тестов
+        function updateSelectedCount() {
+            const checkboxes = document.querySelectorAll('.test-checkbox:checked');
+            const count = checkboxes.length;
+            const selectedCount = document.getElementById('selectedCount');
+            
+            if (selectedCount) {
+                selectedCount.textContent = `Выбрано: ${count} ${count === 1 ? 'тест' : count < 5 ? 'теста' : 'тестов'}`;
+            }
+
+            const jiraSection = document.getElementById('jiraSection');
+            if (generatedTestsData.length > 0) {
+                jiraSection.classList.add('active');
+            }
+        }
+
+        // Выбрать все тесты
+        function selectAllTests() {
+            const checkboxes = document.querySelectorAll('.test-checkbox');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(cb => {
+                cb.checked = !allChecked;
+                const card = cb.closest('.test-card');
+                if (cb.checked) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            });
+            
+            updateSelectedCount();
+        }
+
+        // Отображение результатов
+        function displayResults(parsedData) {
+            const resultSection = document.getElementById('resultSection');
+            const testsSection = document.getElementById('testsSection');
+            const additionalChecksSection = document.getElementById('additionalChecksSection');
+            const testsContainer = document.getElementById('testsContainer');
+            const testsCount = document.getElementById('testsCount');
+            const additionalChecksContent = document.getElementById('additionalChecksContent');
+            const errorSection = document.getElementById('errorSection');
+            const plainTextSection = document.getElementById('plainTextSection');
+            const toggleBtn = document.getElementById('toggleAllBtn');
+
+            errorSection.style.display = 'none';
+            plainTextSection.style.display = 'none';
+
+            testsContainer.innerHTML = '';
+            additionalChecksContent.innerHTML = '';
+            testsSection.style.display = 'none';
+            additionalChecksSection.style.display = 'none';
+
+            generatedTestsData = parsedData.tests;
+
+            if (parsedData.tests.length > 0) {
+                testsSection.style.display = 'block';
+                testsCount.textContent = `${parsedData.tests.length} ${parsedData.tests.length === 1 ? 'тест' : parsedData.tests.length < 5 ? 'теста' : 'тестов'}`;
+                
+                parsedData.tests.forEach((test, index) => {
+                    const card = createTestCard(test, index);
+                    testsContainer.appendChild(card);
+                });
+
+                // Сбросить кнопку на "Развернуть все" так как тесты изначально свёрнуты
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = '📂 Развернуть все';
+                }
+
+                updateSelectedCount();
+            }
+
+            if (parsedData.additionalChecks.length > 0 || parsedData.additionalChecksRaw) {
+                additionalChecksSection.style.display = 'block';
+                
+                if (parsedData.additionalChecks.length > 0) {
+                    const checksContainer = document.createElement('div');
+                    checksContainer.className = 'tests-container';
+                    
+                    parsedData.additionalChecks.forEach(test => {
+                        const card = createAdditionalCheckCard(test);
+                        checksContainer.appendChild(card);
+                    });
+                    
+                    additionalChecksContent.appendChild(checksContainer);
+                } 
+                else if (parsedData.additionalChecksRaw) {
+                    if (typeof marked !== 'undefined') {
+                        additionalChecksContent.innerHTML = marked.parse(parsedData.additionalChecksRaw);
+                    } else {
+                        additionalChecksContent.textContent = parsedData.additionalChecksRaw;
+                    }
+                }
+            }
+
+            resultSection.classList.add('active');
+        }
+
+        // Отправка тестов в JIRA
+        async function sendToJira() {
+            const jiraProjectKey = document.getElementById('jiraProjectKey').value.trim();
+            const jiraFolderName = document.getElementById('jiraFolderName').value.trim();
+            const jiraLangflowUrl = document.getElementById('jiraLangflowUrl').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const apiFormat = document.getElementById('apiFormat').value;
+            const jiraStatus = document.getElementById('jiraStatus');
+
+            if (!jiraProjectKey) {
+                alert('Укажите Project Key');
+                return;
+            }
+
+            if (!jiraFolderName) {
+                alert('Укажите название папки');
+                return;
+            }
+
+            if (!jiraLangflowUrl) {
+                alert('Укажите URL Langflow для JIRA');
+                return;
+            }
+
+            const selectedCheckboxes = document.querySelectorAll('.test-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                alert('Выберите хотя бы один тест для отправки');
+                return;
+            }
+
+            const selectedTests = Array.from(selectedCheckboxes).map(cb => {
+                const index = parseInt(cb.dataset.testIndex);
+                return generatedTestsData[index];
+            });
+
+            const sendBtn = document.querySelector('.btn-send-jira');
+            sendBtn.disabled = true;
+            sendBtn.textContent = '⏳ Отправка...';
+
+            jiraStatus.innerHTML = '';
+            jiraStatus.className = 'jira-status';
+
+            const results = [];
+
+            for (let i = 0; i < selectedTests.length; i++) {
+                const test = selectedTests[i];
+                
+                try {
+                    const headers = {
+                        'Content-Type': 'application/json'
+                    };
+
+                    if (apiKey) {
+                        headers['Authorization'] = `Bearer ${apiKey}`;
+                        headers['x-api-key'] = apiKey;
+                    }
+
+                    const testData = {
+                        projectKey: jiraProjectKey,
+                        folderName: jiraFolderName,
+                        testName: test.id,
+                        testContent: test.content
+                    };
+
+                    let requestBody;
+                    const dataString = JSON.stringify(testData);
+                    
+                    // Генерируем уникальный session ID для каждого теста
+                    const sessionId = generateSessionId();
+                    
+                    switch(apiFormat) {
+                        case 'inputs':
+                            requestBody = {
+                                inputs: {
+                                    input_value: dataString
+                                },
+                                output_type: "chat",
+                                input_type: "chat",
+                                session_id: sessionId
+                            };
+                            break;
+                        case 'message':
+                            requestBody = {
+                                message: dataString,
+                                output_type: "chat",
+                                input_type: "chat",
+                                session_id: sessionId
+                            };
+                            break;
+                        default:
+                            requestBody = {
+                                input_value: dataString,
+                                output_type: "chat",
+                                input_type: "chat",
+                                session_id: sessionId
+                            };
+                    }
+
+                    console.log(`Sending test ${i + 1}/${selectedTests.length}:`, test.id);
+                    console.log('Session ID:', sessionId);
+
+                    const response = await fetch(jiraLangflowUrl, {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(requestBody)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        results.push({
+                            success: true,
+                            testName: test.id,
+                            message: 'Успешно отправлено'
+                        });
+                    } else {
+                        const errorText = await response.text();
+                        results.push({
+                            success: false,
+                            testName: test.id,
+                            message: `Ошибка ${response.status}: ${errorText}`
+                        });
+                    }
+                } catch (error) {
+                    results.push({
+                        success: false,
+                        testName: test.id,
+                        message: error.message
+                    });
+                }
+            }
+
+            const successCount = results.filter(r => r.success).length;
+            const errorCount = results.filter(r => !r.success).length;
+
+            if (errorCount === 0) {
+                jiraStatus.className = 'jira-status success';
+                jiraStatus.innerHTML = `<div style="font-size: 1.1em; margin-bottom: 10px;">✓ Все тесты успешно отправлены в JIRA!</div>`;
+            } else {
+                jiraStatus.className = 'jira-status error';
+                jiraStatus.innerHTML = `<div style="font-size: 1.1em; margin-bottom: 10px;">⚠️ Отправлено: ${successCount}, Ошибок: ${errorCount}</div>`;
+            }
+
+            results.forEach(result => {
+                const item = document.createElement('div');
+                item.className = 'jira-status-item';
+                item.innerHTML = `
+                    <strong>${result.testName}:</strong> 
+                    ${result.success ? '✓' : '✕'} ${result.message}
+                `;
+                jiraStatus.appendChild(item);
+            });
+
+            sendBtn.disabled = false;
+            sendBtn.textContent = '📤 Отправить выбранные тесты в JIRA';
+        }
+
+        // Отображение plain text результата
+        function displayPlainTextResult(textContent) {
+            const resultSection = document.getElementById('resultSection');
+            const plainTextSection = document.getElementById('plainTextSection');
+            const plainTextContent = document.getElementById('plainTextContent');
+            const testsSection = document.getElementById('testsSection');
+            const additionalChecksSection = document.getElementById('additionalChecksSection');
+            const errorSection = document.getElementById('errorSection');
+
+            testsSection.style.display = 'none';
+            additionalChecksSection.style.display = 'none';
+            errorSection.style.display = 'none';
+            
+            plainTextSection.style.display = 'block';
+            
+            plainTextContent.setAttribute('data-raw-content', textContent);
+            
+            if (typeof marked !== 'undefined') {
+                plainTextContent.innerHTML = marked.parse(textContent);
+            } else {
+                plainTextContent.textContent = textContent;
+            }
+
+            resultSection.classList.add('active');
+        }
+
+        // Копирование plain text результата
+        async function copyPlainTextResult() {
+            const plainTextContent = document.getElementById('plainTextContent');
+            const copyBtn = document.getElementById('copyPlainTextBtn');
+            
+            try {
+                const textContent = plainTextContent.getAttribute('data-raw-content') || 
+                                  plainTextContent.innerText || 
+                                  plainTextContent.textContent;
+                
+                await navigator.clipboard.writeText(textContent);
+                
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '✓ Скопировано';
+                copyBtn.classList.add('copied');
+                
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+                
+            } catch (err) {
+                console.error('Ошибка копирования:', err);
+                copyBtn.textContent = '✕ Ошибка';
+                setTimeout(() => {
+                    copyBtn.textContent = '📋 Копировать';
+                }, 2000);
+            }
+        }
+
+        // Добавление новой feature
+        function addFeature() {
+            const featureList = document.getElementById('featureList');
+            const featureItem = document.createElement('div');
+            featureItem.className = 'feature-item';
+            featureItem.innerHTML = `
+                <input type="url" 
+                       class="feature-input" 
+                       placeholder="https://confl.ru/pageid=1234"
+                       required>
+                <button class="btn btn-remove" onclick="removeFeature(this)">✕</button>
+            `;
+            featureList.appendChild(featureItem);
+            
+            // Добавляем event listener для нового поля
+            const input = featureItem.querySelector('.feature-input');
+            input.addEventListener('input', saveFormData);
+            
+            updateRemoveButtons();
+            saveFormData(); // Сохраняем после добавления
+        }
+
+        // Удаление feature
+        function removeFeature(button) {
+            button.parentElement.remove();
+            updateRemoveButtons();
+            saveFormData(); // Сохраняем после удаления
+        }
+
+        // Обновление видимости кнопок удаления
+        function updateRemoveButtons() {
+            const featureItems = document.querySelectorAll('.feature-item');
+            featureItems.forEach((item, index) => {
+                const removeBtn = item.querySelector('.btn-remove');
+                if (featureItems.length > 1) {
+                    removeBtn.style.display = 'block';
+                } else {
+                    removeBtn.style.display = 'none';
+                }
+            });
+        }
+
+        // Сборка XML
+        function buildXML() {
+            const features = Array.from(document.querySelectorAll('.feature-input'))
+                .map(input => input.value.trim())
+                .filter(url => url !== '');
+            
+            const checklist = document.getElementById('checklistUrl').value.trim();
+
+            if (features.length === 0) {
+                throw new Error('Добавьте хотя бы одну страницу с описанием фичи');
+            }
+
+            if (!checklist) {
+                throw new Error('Укажите ссылку на чек-лист');
+            }
+
+            let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<test_generation>\n';
+            
+            features.forEach(feature => {
+                xml += `  <feature>${feature}</feature>\n`;
+            });
+            
+            xml += `  <checklist>${checklist}</checklist>\n`;
+            xml += '</test_generation>';
+
+            return xml;
+        }
+
+        // Генерация тестов
+        async function generateTests() {
+            const generateBtn = document.querySelector('.btn-generate');
+            const loader = document.getElementById('loader');
+            const resultSection = document.getElementById('resultSection');
+
+            try {
+                const xmlData = buildXML();
+
+                generateBtn.disabled = true;
+                loader.classList.add('active');
+                resultSection.classList.remove('active');
+
+                const langflowUrl = document.getElementById('langflowUrl').value.trim();
+                const apiKey = document.getElementById('apiKey').value.trim();
+                const apiFormat = document.getElementById('apiFormat').value;
+
+                if (!langflowUrl) {
+                    throw new Error('Укажите URL Langflow в настройках');
+                }
+
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+
+                if (apiKey) {
+                    headers['Authorization'] = `Bearer ${apiKey}`;
+                    headers['x-api-key'] = apiKey;
+                }
+
+                let requestBody;
+                
+                // Генерируем session ID
+                const sessionId = generateSessionId();
+                
+                switch(apiFormat) {
+                    case 'inputs':
+                        requestBody = {
+                            inputs: {
+                                input_value: xmlData
+                            },
+                            output_type: "chat",
+                            input_type: "chat",
+                            session_id: sessionId
+                        };
+                        break;
+                    case 'message':
+                        requestBody = {
+                            message: xmlData,
+                            output_type: "chat",
+                            input_type: "chat",
+                            session_id: sessionId
+                        };
+                        break;
+                    default:
+                        requestBody = {
+                            input_value: xmlData,
+                            output_type: "chat",
+                            input_type: "chat",
+                            session_id: sessionId
+                        };
+                }
+
+                console.log('Sending request to:', langflowUrl);
+                console.log('Session ID:', sessionId);
+
+                const response = await fetch(langflowUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    let errorMessage = `HTTP ${response.status}: ${response.statusText}\n\n`;
+                    
+                    if (response.status === 405) {
+                        errorMessage += `Ошибка 405 - Метод не разрешен.\n\n`;
+                        errorMessage += `Возможные причины:\n`;
+                        errorMessage += `1. Неправильный URL endpoint\n`;
+                        errorMessage += `2. Проверьте формат API\n\n`;
+                    }
+                    
+                    errorMessage += `Ответ сервера:\n${errorText}`;
+                    throw new Error(errorMessage);
+                }
+
+                const result = await response.json();
+
+                let generatedTests = '';
+                
+                if (result.outputs && result.outputs[0]?.outputs[0]?.results?.message?.text) {
+                    generatedTests = result.outputs[0].outputs[0].results.message.text;
+                } else if (result.result) {
+                    generatedTests = result.result;
+                } else if (result.message) {
+                    generatedTests = result.message;
+                } else {
+                    generatedTests = JSON.stringify(result, null, 2);
+                }
+
+                console.log('Received response:', generatedTests);
+
+                const parsedData = parseXMLResponse(generatedTests);
+                
+                if (parsedData && (parsedData.tests.length > 0 || parsedData.additionalChecks.length > 0 || parsedData.additionalChecksRaw)) {
+                    displayResults(parsedData);
+                } else {
+                    console.log('Response is not in XML format, displaying as plain text');
+                    displayPlainTextResult(generatedTests);
+                }
+
+            } catch (error) {
+                const resultSection = document.getElementById('resultSection');
+                const errorSection = document.getElementById('errorSection');
+                const errorContent = document.getElementById('errorContent');
+                const testsSection = document.getElementById('testsSection');
+                const additionalChecksSection = document.getElementById('additionalChecksSection');
+                const plainTextSection = document.getElementById('plainTextSection');
+                
+                resultSection.classList.add('active');
+                testsSection.style.display = 'none';
+                additionalChecksSection.style.display = 'none';
+                plainTextSection.style.display = 'none';
+                errorSection.style.display = 'block';
+                
+                errorContent.textContent = `Ошибка: ${error.message}\n\nПроверьте:\n- Корректность URL Langflow\n- Доступность сервиса\n- Правильность API ключа (если используется)\n- Формат входных данных`;
+                
+                console.error('Error:', error);
+            } finally {
+                generateBtn.disabled = false;
+                loader.classList.remove('active');
+            }
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Page loaded, initializing...');
+            
+            // Сначала загружаем сохраненные данные
+            loadFormData();
+            
+            // Затем инициализируем автосохранение
+            initAutoSave();
+            
+            // Обновляем видимость кнопок удаления
+            updateRemoveButtons();
+            
+            console.log('Initialization complete');
+        });
+    </script>
+</body>
+</html>
