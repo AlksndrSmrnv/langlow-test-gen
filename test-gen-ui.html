@@ -350,9 +350,22 @@
             flex-direction: column;
             gap: 12px;
             margin-bottom: 12px;
-            max-width: 900px;
+            max-width: 1400px;
             margin-left: auto;
             margin-right: auto;
+        }
+
+        .additional-checks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 900px) {
+            .additional-checks-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .test-card {
@@ -509,8 +522,8 @@
             font-size: 0.8em;
             line-height: 1.5;
             color: #cbd5e1;
-            max-height: 2000px;
-            overflow: hidden;
+            max-height: none;
+            overflow: visible;
             transition: max-height 0.3s ease, opacity 0.3s ease;
             opacity: 1;
         }
@@ -632,7 +645,7 @@
             border: 1px solid rgba(251, 146, 60, 0.3);
             transition: all 0.3s ease;
             position: relative;
-            margin-bottom: 8px;
+            height: 100%;
         }
 
         .additional-check-card:hover {
@@ -1709,18 +1722,18 @@
 
             if (parsedData.additionalChecks.length > 0 || parsedData.additionalChecksRaw) {
                 additionalChecksSection.style.display = 'block';
-                
+
                 if (parsedData.additionalChecks.length > 0) {
                     const checksContainer = document.createElement('div');
-                    checksContainer.className = 'tests-container';
-                    
+                    checksContainer.className = 'additional-checks-grid';
+
                     parsedData.additionalChecks.forEach(test => {
                         const card = createAdditionalCheckCard(test);
                         checksContainer.appendChild(card);
                     });
-                    
+
                     additionalChecksContent.appendChild(checksContainer);
-                } 
+                }
                 else if (parsedData.additionalChecksRaw) {
                     if (typeof marked !== 'undefined') {
                         additionalChecksContent.innerHTML = marked.parse(parsedData.additionalChecksRaw);
