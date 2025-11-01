@@ -346,22 +346,13 @@
         }
 
         .tests-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
             margin-bottom: 12px;
-        }
-
-        @media (min-width: 1400px) {
-            .tests-container {
-                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            }
-        }
-
-        @media (min-width: 1920px) {
-            .tests-container {
-                grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-            }
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .test-card {
