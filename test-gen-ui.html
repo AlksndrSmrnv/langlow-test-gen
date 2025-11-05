@@ -1596,12 +1596,28 @@
                 </div>
                 <div class="settings-body">
                     <div class="input-group">
-                        <label for="langflowUrl">URL Langflow Endpoint</label>
+                        <label for="langflowUrl">URL Langflow для генерации тестов</label>
                         <input type="url"
                                id="langflowUrl"
-                               placeholder="http://localhost:7860/api/v1/run/YOUR_FLOW_ID"
+                               placeholder="http://localhost:7860/api/v1/run/GENERATION_FLOW_ID"
                                value="">
-                        <p class="info-text">Формат: http://localhost:7860/api/v1/run/{flow_id}</p>
+                        <p class="info-text">Endpoint для генерации тестов</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="agentChatLangflowUrl">URL Langflow для чата с агентом</label>
+                        <input type="url"
+                               id="agentChatLangflowUrl"
+                               placeholder="http://localhost:7860/api/v1/run/AGENT_FLOW_ID"
+                               value="">
+                        <p class="info-text">Endpoint для редактирования тестов через чат с агентом</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="jiraLangflowUrl">URL Langflow для отправки в JIRA</label>
+                        <input type="url"
+                               id="jiraLangflowUrl"
+                               placeholder="http://localhost:7860/api/v1/run/JIRA_FLOW_ID"
+                               value="">
+                        <p class="info-text">Endpoint для отправки тестов в JIRA через Langflow</p>
                     </div>
                     <div class="input-group">
                         <label for="apiKey">API Key (опционально)</label>
@@ -1684,15 +1700,6 @@
                                 <p class="info-text">Путь к папке в JIRA Zephyr</p>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="jiraLangflowUrl">URL Langflow Endpoint для JIRA</label>
-                        <input type="url" 
-                               id="jiraLangflowUrl" 
-                               placeholder="http://localhost:7860/api/v1/run/JIRA_FLOW_ID"
-                               required>
-                        <p class="info-text">Endpoint для отправки тестов в JIRA через Langflow</p>
                     </div>
 
                     <button class="btn btn-send-jira" onclick="sendToJira()">
@@ -1836,11 +1843,12 @@
                     features: features,
                     checklistUrl: document.getElementById('checklistUrl').value.trim(),
                     langflowUrl: document.getElementById('langflowUrl').value.trim(),
+                    agentChatLangflowUrl: document.getElementById('agentChatLangflowUrl').value.trim(),
+                    jiraLangflowUrl: document.getElementById('jiraLangflowUrl').value.trim(),
                     apiKey: document.getElementById('apiKey').value.trim(),
                     apiFormat: document.getElementById('apiFormat').value,
                     jiraProjectKey: document.getElementById('jiraProjectKey').value.trim(),
-                    jiraFolderName: document.getElementById('jiraFolderName').value.trim(),
-                    jiraLangflowUrl: document.getElementById('jiraLangflowUrl').value.trim()
+                    jiraFolderName: document.getElementById('jiraFolderName').value.trim()
                 };
 
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
@@ -1894,6 +1902,12 @@
                 if (formData.langflowUrl) {
                     document.getElementById('langflowUrl').value = formData.langflowUrl;
                 }
+                if (formData.agentChatLangflowUrl) {
+                    document.getElementById('agentChatLangflowUrl').value = formData.agentChatLangflowUrl;
+                }
+                if (formData.jiraLangflowUrl) {
+                    document.getElementById('jiraLangflowUrl').value = formData.jiraLangflowUrl;
+                }
                 if (formData.apiKey) {
                     document.getElementById('apiKey').value = formData.apiKey;
                 }
@@ -1905,9 +1919,6 @@
                 }
                 if (formData.jiraFolderName) {
                     document.getElementById('jiraFolderName').value = formData.jiraFolderName;
-                }
-                if (formData.jiraLangflowUrl) {
-                    document.getElementById('jiraLangflowUrl').value = formData.jiraLangflowUrl;
                 }
 
                 console.log('Form data successfully loaded from localStorage');
@@ -1921,11 +1932,12 @@
             // Сохранение при изменении полей
             document.getElementById('checklistUrl').addEventListener('input', saveFormData);
             document.getElementById('langflowUrl').addEventListener('input', saveFormData);
+            document.getElementById('agentChatLangflowUrl').addEventListener('input', saveFormData);
+            document.getElementById('jiraLangflowUrl').addEventListener('input', saveFormData);
             document.getElementById('apiKey').addEventListener('input', saveFormData);
             document.getElementById('apiFormat').addEventListener('change', saveFormData);
             document.getElementById('jiraProjectKey').addEventListener('input', saveFormData);
             document.getElementById('jiraFolderName').addEventListener('input', saveFormData);
-            document.getElementById('jiraLangflowUrl').addEventListener('input', saveFormData);
 
             // Сохранение для существующих feature inputs
             document.querySelectorAll('.feature-input').forEach(input => {
@@ -2404,13 +2416,13 @@
             agentChatState.isProcessing = true;
 
             try {
-                // Получаем настройки Langflow
-                const langflowUrl = document.getElementById('langflowUrl').value.trim();
+                // Получаем настройки Langflow для чата с агентом
+                const agentChatLangflowUrl = document.getElementById('agentChatLangflowUrl').value.trim();
                 const apiKey = document.getElementById('apiKey').value.trim();
                 const apiFormat = document.getElementById('apiFormat').value;
 
-                if (!langflowUrl) {
-                    throw new Error('Укажите URL Langflow в настройках');
+                if (!agentChatLangflowUrl) {
+                    throw new Error('Укажите URL Langflow для чата с агентом в настройках');
                 }
 
                 // Формируем запрос к агенту
@@ -2459,7 +2471,7 @@
                 console.log('Sending agent request:', promptText);
                 console.log('Session ID:', sessionId);
 
-                const response = await fetch(langflowUrl, {
+                const response = await fetch(agentChatLangflowUrl, {
                     method: 'POST',
                     headers: headers,
                     body: JSON.stringify(requestBody)
@@ -2609,7 +2621,7 @@
             }
 
             if (!jiraLangflowUrl) {
-                alert('Укажите URL Langflow для JIRA');
+                alert('Укажите URL Langflow для JIRA в настройках');
                 return;
             }
 
