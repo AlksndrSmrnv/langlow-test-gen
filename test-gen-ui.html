@@ -2287,12 +2287,12 @@
             loaderText.textContent = loadingStatuses[0].text;
             loaderSubstatus.textContent = loadingStatuses[0].substatus;
 
-            // Меняем статус каждые 3 секунды
+            // Меняем статус каждые 20 секунд (для ~3 минут генерации)
             statusInterval = setInterval(() => {
                 currentIndex = (currentIndex + 1) % loadingStatuses.length;
                 loaderText.textContent = loadingStatuses[currentIndex].text;
                 loaderSubstatus.textContent = loadingStatuses[currentIndex].substatus;
-            }, 3000);
+            }, 20000);
         }
 
         // Остановка смены статусов
