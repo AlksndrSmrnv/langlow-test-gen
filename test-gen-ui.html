@@ -103,6 +103,7 @@
             transition: all 0.3s ease;
             max-height: 2000px;
             overflow: hidden;
+            position: relative;
         }
 
         .main-section:hover {
@@ -111,11 +112,37 @@
         }
 
         .main-section.collapsed {
-            max-height: 0;
-            padding: 0 16px;
+            max-height: 48px;
+            padding: 12px 16px;
+            cursor: pointer;
+            background: #F9FAFB;
+        }
+
+        .main-section.collapsed:hover {
+            background: #F3F4F6;
+            border-color: #3B82F6;
+        }
+
+        .main-section.collapsed .section-content {
+            display: none;
+        }
+
+        .main-section.collapsed .section-title {
+            font-size: 0.9375em;
             margin-bottom: 0;
-            opacity: 0;
-            border: none;
+            color: #6B7280;
+        }
+
+        .main-section.collapsed .section-title::after {
+            content: ' ▼ Кликните чтобы развернуть';
+            font-size: 0.75em;
+            margin-left: 8px;
+            color: #9CA3AF;
+            font-weight: 400;
+        }
+
+        .section-content {
+            display: block;
         }
 
         .section-title {
@@ -1236,37 +1263,41 @@
         <!-- Main Form Content -->
         <div class="main-content">
             <!-- Feature URLs Section -->
-            <div class="section main-section">
+            <div class="section main-section" onclick="toggleSection(event, this)">
                 <div class="section-title">
                     <span class="section-icon">📄</span>
                     Страницы с описанием фичи
                 </div>
-                <div id="featureList">
-                    <div class="feature-item">
-                        <input type="url"
-                               class="feature-input"
-                               placeholder="https://confl.ru/pageid=1234"
-                               required>
-                        <button class="btn btn-remove" onclick="removeFeature(this)" style="display: none;">✕</button>
+                <div class="section-content">
+                    <div id="featureList">
+                        <div class="feature-item">
+                            <input type="url"
+                                   class="feature-input"
+                                   placeholder="https://confl.ru/pageid=1234"
+                                   required>
+                            <button class="btn btn-remove" onclick="removeFeature(this)" style="display: none;">✕</button>
+                        </div>
                     </div>
+                    <button class="btn btn-add" onclick="addFeature()">
+                        <span>+</span> Добавить страницу
+                    </button>
                 </div>
-                <button class="btn btn-add" onclick="addFeature()">
-                    <span>+</span> Добавить страницу
-                </button>
             </div>
 
             <!-- Checklist URL Section -->
-            <div class="section main-section">
+            <div class="section main-section" onclick="toggleSection(event, this)">
                 <div class="section-title">
                     <span class="section-icon">✓</span>
                     Чек-лист тестировщика
                 </div>
-                <div class="input-group">
-                    <input type="url"
-                           id="checklistUrl"
-                           placeholder="https://confl.ru/pageid=12346"
-                           required>
-                    <p class="info-text">Ссылка на чек-лист в Confluence</p>
+                <div class="section-content">
+                    <div class="input-group">
+                        <input type="url"
+                               id="checklistUrl"
+                               placeholder="https://confl.ru/pageid=12346"
+                               required>
+                        <p class="info-text">Ссылка на чек-лист в Confluence</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2454,19 +2485,30 @@
             }
         }
 
+        // Разворачивание/сворачивание секций
+        function toggleSection(event, section) {
+            // Если секция свернута, разворачиваем её
+            if (section.classList.contains('collapsed')) {
+                event.stopPropagation();
+                section.classList.remove('collapsed');
+            }
+            // Если клик был на заголовке развернутой секции, не делаем ничего
+            // (сворачивание происходит только при генерации)
+        }
+
         // Инициализация
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Page loaded, initializing...');
-            
+
             // Сначала загружаем сохраненные данные
             loadFormData();
-            
+
             // Затем инициализируем автосохранение
             initAutoSave();
-            
+
             // Обновляем видимость кнопок удаления
             updateRemoveButtons();
-            
+
             console.log('Initialization complete');
         });
     </script>
