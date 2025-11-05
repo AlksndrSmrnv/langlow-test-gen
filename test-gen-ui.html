@@ -101,10 +101,12 @@
 
         .main-section {
             background: white;
-            padding: 24px;
+            padding: 16px;
             border-radius: 8px;
             border: 1px solid #E5E7EB;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            max-height: 2000px;
+            overflow: hidden;
         }
 
         .main-section:hover {
@@ -112,9 +114,17 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
+        .main-section.collapsed {
+            max-height: 0;
+            padding: 0 16px;
+            margin-bottom: 0;
+            opacity: 0;
+            border: none;
+        }
+
         .section-title {
-            font-size: 1.125em;
-            margin-bottom: 16px;
+            font-size: 1em;
+            margin-bottom: 12px;
             color: #111827;
             font-weight: 600;
             display: flex;
@@ -124,20 +134,20 @@
         }
 
         .section-icon {
-            font-size: 1.25em;
+            font-size: 1.125em;
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
 
         .input-group {
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             position: relative;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             color: #374151;
             font-size: 0.875em;
             font-weight: 500;
@@ -147,12 +157,12 @@
         input[type="url"],
         select {
             width: 100%;
-            padding: 12px 16px;
+            padding: 10px 12px;
             background: white;
             border: 1px solid #D1D5DB;
             border-radius: 6px;
             color: #111827;
-            font-size: 16px;
+            font-size: 15px;
             transition: all 0.2s ease;
             font-family: 'Inter', sans-serif;
         }
@@ -178,7 +188,7 @@
         .feature-item {
             display: flex;
             gap: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             align-items: center;
         }
 
@@ -187,11 +197,11 @@
         }
 
         .btn {
-            padding: 12px 24px;
+            padding: 10px 20px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 1em;
+            font-size: 0.9375em;
             font-weight: 500;
             transition: all 0.2s ease;
             font-family: 'Inter', sans-serif;
@@ -229,7 +239,7 @@
             background: white;
             color: #EF4444;
             border: 1px solid #D1D5DB;
-            padding: 12px 16px;
+            padding: 10px 14px;
             flex-shrink: 0;
         }
 
@@ -241,17 +251,18 @@
         .btn-generate {
             width: 100%;
             max-width: 400px;
-            padding: 16px 32px;
+            padding: 14px 28px;
             background: #3B82F6;
             color: white;
             font-size: 1em;
-            margin-top: 24px;
+            margin-top: 16px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
             border-radius: 6px;
             display: block;
             margin-left: auto;
             margin-right: auto;
             font-weight: 600;
+            transition: all 0.3s ease;
         }
 
         .btn-generate:hover:not(:disabled) {
@@ -262,6 +273,14 @@
         .btn-generate:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        .btn-generate.hidden {
+            opacity: 0;
+            max-height: 0;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
         }
 
         .btn-send-jira {
@@ -425,21 +444,26 @@
         .loader {
             display: none;
             text-align: center;
-            margin: 24px 0;
+            margin: 32px 0;
+            padding: 32px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
         }
 
         .loader.active {
             display: block;
+            animation: fadeIn 0.3s ease;
         }
 
         .spinner {
-            border: 3px solid #F3F4F6;
-            border-top: 3px solid #3B82F6;
+            border: 4px solid #EFF6FF;
+            border-top: 4px solid #3B82F6;
             border-radius: 50%;
-            width: 32px;
-            height: 32px;
+            width: 48px;
+            height: 48px;
             animation: spin 0.8s linear infinite;
-            margin: 0 auto 8px;
+            margin: 0 auto 16px;
         }
 
         @keyframes spin {
@@ -448,8 +472,16 @@
         }
 
         .loader-text {
-            color: #6B7280;
+            color: #374151;
             font-size: 1em;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .loader-substatus {
+            color: #6B7280;
+            font-size: 0.875em;
+            margin-top: 8px;
         }
 
         .result-section {
@@ -1294,7 +1326,8 @@
         <!-- Loader -->
         <div class="loader" id="loader">
             <div class="spinner"></div>
-            <div class="loader-text">Генерация тестов в процессе...</div>
+            <div class="loader-text" id="loaderText">Подготовка к генерации...</div>
+            <div class="loader-substatus" id="loaderSubstatus"></div>
         </div>
 
         <!-- Result Section -->
@@ -2238,18 +2271,66 @@
             return xml;
         }
 
+        // Статусы загрузки
+        const loadingStatuses = [
+            { text: 'Подготовка к генерации...', substatus: 'Инициализация процесса' },
+            { text: 'Анализируется чек-лист тестировщика', substatus: 'Извлечение ключевых пунктов' },
+            { text: 'Выполняется обращение к базе знаний', substatus: 'Поиск релевантной информации' },
+            { text: 'Идет чтение документации доработки', substatus: 'Анализ требований и спецификаций' },
+            { text: 'Формирование структуры тестов', substatus: 'Создание тестовых сценариев' },
+            { text: 'Генерация тестовых кейсов', substatus: 'Применение лучших практик' },
+            { text: 'Проверка полноты покрытия', substatus: 'Верификация всех требований' },
+            { text: 'Финализация результатов', substatus: 'Подготовка к отображению' }
+        ];
+
+        let statusInterval = null;
+
+        // Запуск динамической смены статусов
+        function startLoadingStatuses() {
+            const loaderText = document.getElementById('loaderText');
+            const loaderSubstatus = document.getElementById('loaderSubstatus');
+            let currentIndex = 0;
+
+            // Устанавливаем первый статус
+            loaderText.textContent = loadingStatuses[0].text;
+            loaderSubstatus.textContent = loadingStatuses[0].substatus;
+
+            // Меняем статус каждые 3 секунды
+            statusInterval = setInterval(() => {
+                currentIndex = (currentIndex + 1) % loadingStatuses.length;
+                loaderText.textContent = loadingStatuses[currentIndex].text;
+                loaderSubstatus.textContent = loadingStatuses[currentIndex].substatus;
+            }, 3000);
+        }
+
+        // Остановка смены статусов
+        function stopLoadingStatuses() {
+            if (statusInterval) {
+                clearInterval(statusInterval);
+                statusInterval = null;
+            }
+        }
+
         // Генерация тестов
         async function generateTests() {
             const generateBtn = document.querySelector('.btn-generate');
             const loader = document.getElementById('loader');
             const resultSection = document.getElementById('resultSection');
+            const mainSections = document.querySelectorAll('.main-section');
 
             try {
                 const xmlData = buildXML();
 
+                // Сворачиваем формы и кнопку
+                mainSections.forEach(section => section.classList.add('collapsed'));
+                generateBtn.classList.add('hidden');
+
                 generateBtn.disabled = true;
                 loader.classList.add('active');
                 resultSection.classList.remove('active');
+
+                // Запускаем динамическую смену статусов
+                startLoadingStatuses();
 
                 const langflowUrl = document.getElementById('langflowUrl').value.trim();
                 const apiKey = document.getElementById('apiKey').value.trim();
@@ -2357,17 +2438,25 @@
                 const testsSection = document.getElementById('testsSection');
                 const additionalChecksSection = document.getElementById('additionalChecksSection');
                 const plainTextSection = document.getElementById('plainTextSection');
-                
+                const mainSections = document.querySelectorAll('.main-section');
+
+                // Разворачиваем формы при ошибке
+                mainSections.forEach(section => section.classList.remove('collapsed'));
+                generateBtn.classList.remove('hidden');
+
                 resultSection.classList.add('active');
                 testsSection.style.display = 'none';
                 additionalChecksSection.style.display = 'none';
                 plainTextSection.style.display = 'none';
                 errorSection.style.display = 'block';
-                
+
                 errorContent.textContent = `Ошибка: ${error.message}\n\nПроверьте:\n- Корректность URL Langflow\n- Доступность сервиса\n- Правильность API ключа (если используется)\n- Формат входных данных`;
-                
+
                 console.error('Error:', error);
             } finally {
+                // Останавливаем смену статусов
+                stopLoadingStatuses();
+
                 generateBtn.disabled = false;
                 loader.classList.remove('active');
             }
