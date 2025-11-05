@@ -1246,6 +1246,291 @@
                 opacity: 1;
             }
         }
+
+        /* Agent Chat Styles */
+        .agent-chat-container {
+            display: none;
+            margin-top: 32px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            overflow: hidden;
+        }
+
+        .agent-chat-container.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .agent-chat-header {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #2563EB;
+        }
+
+        .agent-chat-header-icon {
+            font-size: 1.5em;
+        }
+
+        .agent-chat-header-text h3 {
+            margin: 0;
+            font-size: 1.125em;
+            font-weight: 600;
+        }
+
+        .agent-chat-header-text p {
+            margin: 4px 0 0 0;
+            font-size: 0.875em;
+            opacity: 0.9;
+        }
+
+        .agent-chat-body {
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            background: #F9FAFB;
+        }
+
+        .agent-chat-messages {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .agent-message {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .agent-message.user {
+            flex-direction: row-reverse;
+        }
+
+        .agent-message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25em;
+            flex-shrink: 0;
+        }
+
+        .agent-message.agent .agent-message-avatar {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        }
+
+        .agent-message.user .agent-message-avatar {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+        }
+
+        .agent-message-content {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid #E5E7EB;
+            max-width: 70%;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .agent-message.user .agent-message-content {
+            background: #EFF6FF;
+            border-color: #DBEAFE;
+        }
+
+        .agent-message-text {
+            color: #374151;
+            font-size: 0.9375em;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .agent-message-time {
+            font-size: 0.75em;
+            color: #9CA3AF;
+            margin-top: 6px;
+        }
+
+        .agent-chat-context {
+            background: #FEF3C7;
+            border: 1px solid #FDE68A;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .agent-chat-context.active {
+            display: block;
+        }
+
+        .agent-chat-context-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .agent-chat-context-icon {
+            font-size: 1.125em;
+        }
+
+        .agent-chat-context-title {
+            font-weight: 600;
+            font-size: 0.875em;
+            color: #92400E;
+        }
+
+        .agent-chat-context-test {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #FDE68A;
+            font-size: 0.875em;
+            color: #78350F;
+            font-weight: 500;
+        }
+
+        .agent-chat-warning {
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .agent-chat-warning.active {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .agent-chat-warning-icon {
+            font-size: 1.125em;
+            color: #EF4444;
+        }
+
+        .agent-chat-warning-text {
+            font-size: 0.875em;
+            color: #991B1B;
+            font-weight: 500;
+        }
+
+        .agent-chat-input-container {
+            padding: 16px 20px;
+            background: white;
+            border-top: 1px solid #E5E7EB;
+        }
+
+        .agent-chat-input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .agent-chat-textarea {
+            flex: 1;
+            min-height: 80px;
+            max-height: 200px;
+            padding: 12px;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375em;
+            resize: vertical;
+            transition: all 0.2s ease;
+        }
+
+        .agent-chat-textarea:hover {
+            border-color: #9CA3AF;
+        }
+
+        .agent-chat-textarea:focus {
+            outline: none;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+
+        .agent-chat-textarea::placeholder {
+            color: #9CA3AF;
+        }
+
+        .agent-chat-send-btn {
+            background: #3B82F6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9375em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .agent-chat-send-btn:hover:not(:disabled) {
+            background: #2563EB;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .agent-chat-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .agent-chat-loader {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            color: #6B7280;
+            font-size: 0.875em;
+        }
+
+        .agent-chat-loader.active {
+            display: flex;
+        }
+
+        .agent-chat-loader-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #E5E7EB;
+            border-top-color: #3B82F6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @media (max-width: 768px) {
+            .agent-chat-body {
+                max-height: 300px;
+            }
+
+            .agent-message-content {
+                max-width: 85%;
+            }
+
+            .agent-chat-input-wrapper {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .agent-chat-send-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1448,6 +1733,61 @@
                 </div>
                 <div class="result-content" id="errorContent"></div>
             </div>
+
+            <!-- Agent Chat Section -->
+            <div class="agent-chat-container" id="agentChatContainer">
+                <div class="agent-chat-header">
+                    <div class="agent-chat-header-icon">🤖</div>
+                    <div class="agent-chat-header-text">
+                        <h3>Чат с AI агентом</h3>
+                        <p>Выберите тест чекбоксом для редактирования</p>
+                    </div>
+                </div>
+
+                <div class="agent-chat-body">
+                    <!-- Context Info -->
+                    <div class="agent-chat-context" id="agentChatContext">
+                        <div class="agent-chat-context-header">
+                            <span class="agent-chat-context-icon">📋</span>
+                            <span class="agent-chat-context-title">Выбран тест для редактирования:</span>
+                        </div>
+                        <div class="agent-chat-context-test" id="agentChatContextTest"></div>
+                    </div>
+
+                    <!-- Warning for multiple tests -->
+                    <div class="agent-chat-warning" id="agentChatWarning">
+                        <span class="agent-chat-warning-icon">⚠️</span>
+                        <span class="agent-chat-warning-text">Выберите только один тест для редактирования</span>
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div class="agent-chat-messages" id="agentChatMessages"></div>
+
+                    <!-- Chat Loader -->
+                    <div class="agent-chat-loader" id="agentChatLoader">
+                        <div class="agent-chat-loader-spinner"></div>
+                        <span>Агент обрабатывает ваш запрос...</span>
+                    </div>
+                </div>
+
+                <div class="agent-chat-input-container">
+                    <div class="agent-chat-input-wrapper">
+                        <textarea
+                            class="agent-chat-textarea"
+                            id="agentChatInput"
+                            placeholder="Напишите, что нужно изменить в тесте...
+Например: 'Добавь проверку валидации email' или 'Убери шаг с проверкой пароля'"></textarea>
+                        <button
+                            class="agent-chat-send-btn"
+                            id="agentChatSendBtn"
+                            onclick="sendAgentMessage()"
+                            disabled>
+                            <span>📤</span>
+                            <span>Отправить</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1466,6 +1806,13 @@
 
         // Таймер для автосохранения
         let saveTimeout = null;
+
+        // Состояние чата с агентом
+        let agentChatState = {
+            selectedTestIndex: null,
+            messages: [],
+            isProcessing: false
+        };
 
         // Показать индикатор автосохранения
         function showAutosaveIndicator() {
@@ -1918,7 +2265,7 @@
             const checkboxes = document.querySelectorAll('.test-checkbox:checked');
             const count = checkboxes.length;
             const selectedCount = document.getElementById('selectedCount');
-            
+
             if (selectedCount) {
                 selectedCount.textContent = `Выбрано: ${count} ${count === 1 ? 'тест' : count < 5 ? 'теста' : 'тестов'}`;
             }
@@ -1926,6 +2273,50 @@
             const jiraSection = document.getElementById('jiraSection');
             if (generatedTestsData.length > 0) {
                 jiraSection.classList.add('active');
+            }
+
+            // Управление чатом с агентом
+            updateAgentChatState(checkboxes);
+        }
+
+        // Обновление состояния чата с агентом
+        function updateAgentChatState(checkboxes) {
+            const agentChatContainer = document.getElementById('agentChatContainer');
+            const agentChatContext = document.getElementById('agentChatContext');
+            const agentChatWarning = document.getElementById('agentChatWarning');
+            const agentChatContextTest = document.getElementById('agentChatContextTest');
+            const agentChatSendBtn = document.getElementById('agentChatSendBtn');
+
+            const count = checkboxes.length;
+
+            // Показываем чат только если есть сгенерированные тесты
+            if (generatedTestsData.length > 0) {
+                agentChatContainer.classList.add('active');
+            }
+
+            if (count === 0) {
+                // Нет выбранных тестов
+                agentChatContext.classList.remove('active');
+                agentChatWarning.classList.remove('active');
+                agentChatSendBtn.disabled = true;
+                agentChatState.selectedTestIndex = null;
+            } else if (count === 1) {
+                // Выбран один тест - все хорошо
+                const selectedCheckbox = checkboxes[0];
+                const testIndex = parseInt(selectedCheckbox.dataset.testIndex);
+                const test = generatedTestsData[testIndex];
+
+                agentChatState.selectedTestIndex = testIndex;
+                agentChatContext.classList.add('active');
+                agentChatWarning.classList.remove('active');
+                agentChatContextTest.textContent = test.id;
+                agentChatSendBtn.disabled = false;
+            } else {
+                // Выбрано больше одного теста - показываем предупреждение
+                agentChatContext.classList.remove('active');
+                agentChatWarning.classList.add('active');
+                agentChatSendBtn.disabled = true;
+                agentChatState.selectedTestIndex = null;
             }
         }
 
@@ -1945,6 +2336,192 @@
             });
             
             updateSelectedCount();
+        }
+
+        // Добавление сообщения в чат
+        function addChatMessage(text, isUser = true) {
+            const messagesContainer = document.getElementById('agentChatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `agent-message ${isUser ? 'user' : 'agent'}`;
+
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+            messageDiv.innerHTML = `
+                <div class="agent-message-avatar">${isUser ? '👤' : '🤖'}</div>
+                <div class="agent-message-content">
+                    <p class="agent-message-text">${text}</p>
+                    <div class="agent-message-time">${timeString}</div>
+                </div>
+            `;
+
+            messagesContainer.appendChild(messageDiv);
+
+            // Прокрутка к последнему сообщению
+            const chatBody = document.getElementById('agentChatContainer').querySelector('.agent-chat-body');
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            // Сохраняем в историю
+            agentChatState.messages.push({
+                text: text,
+                isUser: isUser,
+                timestamp: now.toISOString()
+            });
+        }
+
+        // Отправка сообщения агенту
+        async function sendAgentMessage() {
+            const input = document.getElementById('agentChatInput');
+            const message = input.value.trim();
+
+            if (!message) {
+                return;
+            }
+
+            if (agentChatState.selectedTestIndex === null) {
+                alert('Выберите тест для редактирования');
+                return;
+            }
+
+            if (agentChatState.isProcessing) {
+                return;
+            }
+
+            // Получаем выбранный тест
+            const selectedTest = generatedTestsData[agentChatState.selectedTestIndex];
+
+            // Добавляем сообщение пользователя в чат
+            addChatMessage(message, true);
+
+            // Очищаем поле ввода
+            input.value = '';
+
+            // Показываем индикатор загрузки
+            const loader = document.getElementById('agentChatLoader');
+            const sendBtn = document.getElementById('agentChatSendBtn');
+            loader.classList.add('active');
+            sendBtn.disabled = true;
+            agentChatState.isProcessing = true;
+
+            try {
+                // Получаем настройки Langflow
+                const langflowUrl = document.getElementById('langflowUrl').value.trim();
+                const apiKey = document.getElementById('apiKey').value.trim();
+                const apiFormat = document.getElementById('apiFormat').value;
+
+                if (!langflowUrl) {
+                    throw new Error('Укажите URL Langflow в настройках');
+                }
+
+                // Формируем запрос к агенту
+                const promptText = `Текущий тест:\n\n${selectedTest.content}\n\n---\n\nЗапрос на изменение: ${message}\n\nВерни обновленную версию теста целиком в markdown формате. Не добавляй никаких дополнительных комментариев, только сам тест.`;
+
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+
+                if (apiKey) {
+                    headers['Authorization'] = `Bearer ${apiKey}`;
+                    headers['x-api-key'] = apiKey;
+                }
+
+                let requestBody;
+                const sessionId = generateSessionId();
+
+                switch(apiFormat) {
+                    case 'inputs':
+                        requestBody = {
+                            inputs: {
+                                input_value: promptText
+                            },
+                            output_type: "chat",
+                            input_type: "chat",
+                            session_id: sessionId
+                        };
+                        break;
+                    case 'message':
+                        requestBody = {
+                            message: promptText,
+                            output_type: "chat",
+                            input_type: "chat",
+                            session_id: sessionId
+                        };
+                        break;
+                    default:
+                        requestBody = {
+                            input_value: promptText,
+                            output_type: "chat",
+                            input_type: "chat",
+                            session_id: sessionId
+                        };
+                }
+
+                console.log('Sending agent request:', promptText);
+                console.log('Session ID:', sessionId);
+
+                const response = await fetch(langflowUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const result = await response.json();
+
+                // Извлекаем ответ агента
+                let agentResponse = '';
+
+                if (result.outputs && result.outputs[0]?.outputs[0]?.results?.message?.text) {
+                    agentResponse = result.outputs[0].outputs[0].results.message.text;
+                } else if (result.result) {
+                    agentResponse = result.result;
+                } else if (result.message) {
+                    agentResponse = result.message;
+                } else {
+                    agentResponse = JSON.stringify(result, null, 2);
+                }
+
+                console.log('Agent response:', agentResponse);
+
+                // Обновляем тест
+                generatedTestsData[agentChatState.selectedTestIndex].content = agentResponse;
+
+                // Обновляем отображение теста в UI
+                updateTestCard(agentChatState.selectedTestIndex, agentResponse);
+
+                // Добавляем ответ агента в чат
+                addChatMessage('Тест успешно обновлен!', false);
+
+            } catch (error) {
+                console.error('Error sending message to agent:', error);
+                addChatMessage(`Ошибка: ${error.message}`, false);
+            } finally {
+                loader.classList.remove('active');
+                sendBtn.disabled = false;
+                agentChatState.isProcessing = false;
+            }
+        }
+
+        // Обновление карточки теста
+        function updateTestCard(testIndex, newContent) {
+            const testCard = document.querySelector(`.test-card[data-test-index="${testIndex}"]`);
+            if (!testCard) {
+                console.error('Test card not found');
+                return;
+            }
+
+            const contentDiv = testCard.querySelector('.test-content');
+            if (contentDiv) {
+                if (typeof marked !== 'undefined') {
+                    contentDiv.innerHTML = marked.parse(newContent);
+                } else {
+                    contentDiv.textContent = newContent;
+                }
+            }
         }
 
         // Отображение результатов
@@ -2352,6 +2929,9 @@
                 loader.classList.add('active');
                 resultSection.classList.remove('active');
 
+                // Очищаем чат при новой генерации
+                resetAgentChat();
+
                 // Запускаем динамическую смену статусов
                 startLoadingStatuses();
 
@@ -2496,6 +3076,34 @@
             // (сворачивание происходит только при генерации)
         }
 
+        // Очистка чата
+        function resetAgentChat() {
+            agentChatState = {
+                selectedTestIndex: null,
+                messages: [],
+                isProcessing: false
+            };
+
+            const messagesContainer = document.getElementById('agentChatMessages');
+            messagesContainer.innerHTML = '';
+
+            const agentChatContext = document.getElementById('agentChatContext');
+            const agentChatWarning = document.getElementById('agentChatWarning');
+            agentChatContext.classList.remove('active');
+            agentChatWarning.classList.remove('active');
+
+            const agentChatInput = document.getElementById('agentChatInput');
+            agentChatInput.value = '';
+        }
+
+        // Обработка нажатия Enter в текстовом поле
+        function handleChatInputKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendAgentMessage();
+            }
+        }
+
         // Инициализация
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Page loaded, initializing...');
@@ -2508,6 +3116,12 @@
 
             // Обновляем видимость кнопок удаления
             updateRemoveButtons();
+
+            // Добавляем обработчик Enter для текстового поля чата
+            const chatInput = document.getElementById('agentChatInput');
+            if (chatInput) {
+                chatInput.addEventListener('keypress', handleChatInputKeyPress);
+            }
 
             console.log('Initialization complete');
         });
