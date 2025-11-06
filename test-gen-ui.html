@@ -2606,7 +2606,7 @@
             if (parsedData.tests.length > 0) {
                 testsSection.style.display = 'block';
                 testsCount.textContent = `${parsedData.tests.length} ${parsedData.tests.length === 1 ? 'тест' : parsedData.tests.length < 5 ? 'теста' : 'тестов'}`;
-                
+
                 parsedData.tests.forEach((test, index) => {
                     const card = createTestCard(test, index);
                     testsContainer.appendChild(card);
@@ -2615,6 +2615,13 @@
                 // Сбросить кнопку на "Развернуть все" так как тесты изначально свёрнуты
                 if (toggleBtn) {
                     toggleBtn.innerHTML = '📂 Развернуть все';
+                }
+
+                // Активировать секцию JIRA сразу после генерации тестов
+                const jiraSection = document.getElementById('jiraSection');
+                if (jiraSection) {
+                    jiraSection.classList.add('active');
+                    console.log('JIRA section activated after test generation');
                 }
 
                 updateSelectedCount();
