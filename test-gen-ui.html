@@ -1711,7 +1711,7 @@
                         </div>
                     </div>
 
-                    <button type="button" class="btn btn-send-jira" onclick="sendToJira()">
+                    <button type="button" class="btn btn-send-jira" id="btnSendJira">
                         📤 Отправить выбранные тесты в JIRA
                     </button>
 
@@ -2306,8 +2306,17 @@
             }
 
             const jiraSection = document.getElementById('jiraSection');
+            const testsSection = document.getElementById('testsSection');
+            console.log('updateSelectedCount:', {
+                generatedTestsCount: generatedTestsData.length,
+                jiraSectionExists: !!jiraSection,
+                jiraSectionClasses: jiraSection?.className,
+                testsSectionDisplay: testsSection?.style.display
+            });
+
             if (generatedTestsData.length > 0) {
                 jiraSection.classList.add('active');
+                console.log('Added active class to jiraSection');
             }
 
             // Управление чатом с агентом
@@ -2639,6 +2648,7 @@
 
         // Отправка тестов в JIRA
         async function sendToJira() {
+            console.log('sendToJira function called');
             const jiraProjectKey = document.getElementById('jiraProjectKey').value.trim();
             const jiraFolderName = document.getElementById('jiraFolderName').value.trim();
 
@@ -3187,6 +3197,17 @@
                         sendBtn.disabled = false;
                     }
                 });
+            }
+
+            // Добавляем обработчик для кнопки отправки в JIRA
+            const btnSendJira = document.getElementById('btnSendJira');
+            if (btnSendJira) {
+                btnSendJira.addEventListener('click', function(e) {
+                    console.log('JIRA button clicked');
+                    e.preventDefault();
+                    sendToJira();
+                });
+                console.log('JIRA button event listener attached');
             }
 
             console.log('Initialization complete');
