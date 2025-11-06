@@ -1679,12 +1679,21 @@
                         </button>
                     </div>
                     
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label for="jiraLangflowUrlLocal">URL Langflow для отправки в JIRA</label>
+                        <input type="url"
+                               id="jiraLangflowUrlLocal"
+                               placeholder="http://localhost:7860/api/v1/run/JIRA_FLOW_ID"
+                               required>
+                        <p class="info-text">Endpoint для отправки тестов в JIRA через Langflow</p>
+                    </div>
+
                     <div class="form-layout">
                         <div class="form-column">
                             <div class="input-group">
                                 <label for="jiraProjectKey">Project Key</label>
-                                <input type="text" 
-                                       id="jiraProjectKey" 
+                                <input type="text"
+                                       id="jiraProjectKey"
                                        placeholder="PROJ"
                                        required>
                                 <p class="info-text">Ключ проекта в JIRA</p>
@@ -1693,8 +1702,8 @@
                         <div class="form-column">
                             <div class="input-group">
                                 <label for="jiraFolderName">Название папки</label>
-                                <input type="text" 
-                                       id="jiraFolderName" 
+                                <input type="text"
+                                       id="jiraFolderName"
                                        placeholder="Sprint 1 / Feature Tests"
                                        required>
                                 <p class="info-text">Путь к папке в JIRA Zephyr</p>
@@ -1845,6 +1854,7 @@
                     langflowUrl: document.getElementById('langflowUrl').value.trim(),
                     agentChatLangflowUrl: document.getElementById('agentChatLangflowUrl').value.trim(),
                     jiraLangflowUrl: document.getElementById('jiraLangflowUrl').value.trim(),
+                    jiraLangflowUrlLocal: document.getElementById('jiraLangflowUrlLocal')?.value.trim() || '',
                     apiKey: document.getElementById('apiKey').value.trim(),
                     apiFormat: document.getElementById('apiFormat').value,
                     jiraProjectKey: document.getElementById('jiraProjectKey').value.trim(),
@@ -1908,6 +1918,12 @@
                 if (formData.jiraLangflowUrl) {
                     document.getElementById('jiraLangflowUrl').value = formData.jiraLangflowUrl;
                 }
+                if (formData.jiraLangflowUrlLocal) {
+                    const jiraLocalField = document.getElementById('jiraLangflowUrlLocal');
+                    if (jiraLocalField) {
+                        jiraLocalField.value = formData.jiraLangflowUrlLocal;
+                    }
+                }
                 if (formData.apiKey) {
                     document.getElementById('apiKey').value = formData.apiKey;
                 }
@@ -1938,6 +1954,12 @@
             document.getElementById('apiFormat').addEventListener('change', saveFormData);
             document.getElementById('jiraProjectKey').addEventListener('input', saveFormData);
             document.getElementById('jiraFolderName').addEventListener('input', saveFormData);
+
+            // Event listener для локального поля JIRA URL (добавляется динамически, когда секция появляется)
+            const jiraLocalField = document.getElementById('jiraLangflowUrlLocal');
+            if (jiraLocalField) {
+                jiraLocalField.addEventListener('input', saveFormData);
+            }
 
             // Сохранение для существующих feature inputs
             document.querySelectorAll('.feature-input').forEach(input => {
@@ -2605,9 +2627,15 @@
         async function sendToJira() {
             const jiraProjectKey = document.getElementById('jiraProjectKey').value.trim();
             const jiraFolderName = document.getElementById('jiraFolderName').value.trim();
-            const jiraLangflowUrl = document.getElementById('jiraLangflowUrl').value.trim();
-            const apiKey = document.getElementById('apiKey').value.trim();
-            const apiFormat = document.getElementById('apiFormat').value;
+
+            // Пытаемся получить URL из локального поля, если пусто - из настроек
+            let jiraLangflowUrl = document.getElementById('jiraLangflowUrlLocal')?.value.trim();
+            if (!jiraLangflowUrl) {
+                jiraLangflowUrl = document.getElementById('jiraLangflowUrl')?.value.trim() || '';
+            }
+
+            const apiKey = document.getElementById('apiKey')?.value.trim() || '';
+            const apiFormat = document.getElementById('apiFormat')?.value || 'default';
             const jiraStatus = document.getElementById('jiraStatus');
 
             if (!jiraProjectKey) {
@@ -2621,7 +2649,7 @@
             }
 
             if (!jiraLangflowUrl) {
-                alert('Укажите URL Langflow для JIRA в настройках');
+                alert('Укажите URL Langflow для отправки в JIRA');
                 return;
             }
 
