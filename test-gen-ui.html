@@ -1259,8 +1259,11 @@
         }
 
         .agent-chat-container.active {
-            display: block;
+            display: block !important;
             animation: fadeIn 0.5s ease;
+            pointer-events: auto;
+            position: relative;
+            z-index: 1;
         }
 
         .agent-chat-header {
@@ -1429,12 +1432,16 @@
             padding: 16px 20px;
             background: white;
             border-top: 1px solid #E5E7EB;
+            pointer-events: auto;
+            position: relative;
+            z-index: 2;
         }
 
         .agent-chat-input-wrapper {
             display: flex;
             gap: 12px;
             align-items: flex-end;
+            pointer-events: auto;
         }
 
         .agent-chat-textarea {
@@ -1448,6 +1455,10 @@
             font-size: 0.9375em;
             resize: vertical;
             transition: all 0.2s ease;
+            pointer-events: auto !important;
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            cursor: text;
         }
 
         .agent-chat-textarea:hover {
@@ -2325,14 +2336,25 @@
 
             const count = checkboxes.length;
 
+            console.log('updateAgentChatState called:', {
+                checkboxesCount: count,
+                generatedTestsDataLength: generatedTestsData.length
+            });
+
             // Показываем чат только если есть сгенерированные тесты
             if (generatedTestsData.length > 0) {
                 agentChatContainer.classList.add('active');
+                agentChatContainer.style.display = 'block';
+                agentChatContainer.style.pointerEvents = 'auto';
+
+                console.log('Agent chat container activated in updateAgentChatState');
 
                 // Убеждаемся, что textarea доступно для ввода
                 if (agentChatInput) {
                     agentChatInput.disabled = false;
                     agentChatInput.readOnly = false;
+                    agentChatInput.style.pointerEvents = 'auto';
+                    console.log('Agent chat input enabled in updateAgentChatState');
                 }
             }
 
@@ -2609,6 +2631,31 @@
                 }
 
                 updateSelectedCount();
+
+                // Показываем чат с агентом сразу после генерации тестов
+                const agentChatContainer = document.getElementById('agentChatContainer');
+                const agentChatInput = document.getElementById('agentChatInput');
+
+                console.log('Showing agent chat container after test generation');
+
+                if (agentChatContainer) {
+                    agentChatContainer.classList.add('active');
+                    agentChatContainer.style.display = 'block';
+                    agentChatContainer.style.pointerEvents = 'auto';
+                    console.log('Agent chat container shown:', {
+                        classList: agentChatContainer.classList.toString(),
+                        display: agentChatContainer.style.display
+                    });
+                }
+                if (agentChatInput) {
+                    agentChatInput.disabled = false;
+                    agentChatInput.readOnly = false;
+                    agentChatInput.style.pointerEvents = 'auto';
+                    console.log('Agent chat input enabled:', {
+                        disabled: agentChatInput.disabled,
+                        readOnly: agentChatInput.readOnly
+                    });
+                }
             }
 
             if (parsedData.additionalChecks.length > 0 || parsedData.additionalChecksRaw) {
@@ -3177,15 +3224,33 @@
                 // Убеждаемся, что textarea не заблокировано
                 chatInput.disabled = false;
                 chatInput.readOnly = false;
+                chatInput.style.pointerEvents = 'auto';
+
+                console.log('Chat input initialized:', {
+                    disabled: chatInput.disabled,
+                    readOnly: chatInput.readOnly,
+                    style: chatInput.style.pointerEvents
+                });
 
                 chatInput.addEventListener('keypress', handleChatInputKeyPress);
 
                 // Добавляем обработчик для обновления состояния кнопки при вводе
                 chatInput.addEventListener('input', function() {
+                    console.log('Chat input changed:', this.value);
                     const sendBtn = document.getElementById('agentChatSendBtn');
                     if (sendBtn && agentChatState.selectedTestIndex !== null) {
                         sendBtn.disabled = false;
                     }
+                });
+
+                // Добавляем обработчик клика для проверки доступности
+                chatInput.addEventListener('click', function() {
+                    console.log('Chat input clicked');
+                });
+
+                // Добавляем обработчик фокуса
+                chatInput.addEventListener('focus', function() {
+                    console.log('Chat input focused');
                 });
             }
 
