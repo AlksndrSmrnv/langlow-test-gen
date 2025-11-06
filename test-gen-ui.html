@@ -1792,7 +1792,8 @@
                             class="agent-chat-textarea"
                             id="agentChatInput"
                             placeholder="Напишите, что нужно изменить в тесте...
-Например: 'Добавь проверку валидации email' или 'Убери шаг с проверкой пароля'"></textarea>
+Например: 'Добавь проверку валидации email' или 'Убери шаг с проверкой пароля'"
+                            tabindex="0"></textarea>
                         <button
                             class="agent-chat-send-btn"
                             id="agentChatSendBtn"
@@ -2320,12 +2321,19 @@
             const agentChatWarning = document.getElementById('agentChatWarning');
             const agentChatContextTest = document.getElementById('agentChatContextTest');
             const agentChatSendBtn = document.getElementById('agentChatSendBtn');
+            const agentChatInput = document.getElementById('agentChatInput');
 
             const count = checkboxes.length;
 
             // Показываем чат только если есть сгенерированные тесты
             if (generatedTestsData.length > 0) {
                 agentChatContainer.classList.add('active');
+
+                // Убеждаемся, что textarea доступно для ввода
+                if (agentChatInput) {
+                    agentChatInput.disabled = false;
+                    agentChatInput.readOnly = false;
+                }
             }
 
             if (count === 0) {
@@ -2345,6 +2353,12 @@
                 agentChatWarning.classList.remove('active');
                 agentChatContextTest.textContent = test.id;
                 agentChatSendBtn.disabled = false;
+
+                // Убеждаемся, что textarea доступно для ввода
+                if (agentChatInput) {
+                    agentChatInput.disabled = false;
+                    agentChatInput.readOnly = false;
+                }
             } else {
                 // Выбрано больше одного теста - показываем предупреждение
                 agentChatContext.classList.remove('active');
@@ -3160,7 +3174,19 @@
             // Добавляем обработчик Enter для текстового поля чата
             const chatInput = document.getElementById('agentChatInput');
             if (chatInput) {
+                // Убеждаемся, что textarea не заблокировано
+                chatInput.disabled = false;
+                chatInput.readOnly = false;
+
                 chatInput.addEventListener('keypress', handleChatInputKeyPress);
+
+                // Добавляем обработчик для обновления состояния кнопки при вводе
+                chatInput.addEventListener('input', function() {
+                    const sendBtn = document.getElementById('agentChatSendBtn');
+                    if (sendBtn && agentChatState.selectedTestIndex !== null) {
+                        sendBtn.disabled = false;
+                    }
+                });
             }
 
             console.log('Initialization complete');
