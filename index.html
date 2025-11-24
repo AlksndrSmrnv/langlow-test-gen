@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор Интеграционных Тестов</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>🧪 Генератор Интеграционных Тестов</h1>
+                <p class="subtitle">Автоматическая генерация тестов на основе требований и чек-листов</p>
+            </div>
+            <button class="btn btn-icon" id="settingsBtn" title="Настройки подключения">⚙️</button>
+        </div>
+
+        <div class="main-content">
+            <div class="section" data-section="features">
+                <div class="section-title"><span>📄</span> Страницы с описанием фичи</div>
+                <div class="section-content">
+                    <div id="featureList">
+                        <div class="feature-item">
+                            <input type="url" class="feature-input" placeholder="https://confl.ru/pageid=1234" required>
+                            <button class="btn btn-remove" style="display: none;">✕</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-add" id="addFeatureBtn"><span>+</span> Добавить страницу</button>
+                </div>
+            </div>
+
+            <div class="section" data-section="checklist">
+                <div class="section-title"><span>✓</span> Чек-лист тестировщика</div>
+                <div class="section-content">
+                    <div class="input-group">
+                        <input type="url" id="checklistUrl" placeholder="https://confl.ru/pageid=12346" required>
+                        <p class="info-text">Ссылка на чек-лист в Confluence</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div class="modal" id="settingsModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>⚙️ Настройки подключения к Langflow</h2>
+                    <button class="btn btn-icon close-btn" id="closeSettingsBtn">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group">
+                        <label for="langflowUrl">URL Langflow для генерации тестов</label>
+                        <input type="url" id="langflowUrl"
+                            placeholder="http://localhost:7860/api/v1/run/GENERATION_FLOW_ID">
+                        <p class="info-text">Endpoint для генерации тестов</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="agentChatLangflowUrl">URL Langflow для чата с агентом</label>
+                        <input type="url" id="agentChatLangflowUrl"
+                            placeholder="http://localhost:7860/api/v1/run/AGENT_FLOW_ID">
+                        <p class="info-text">Endpoint для редактирования тестов через чат</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="jiraLangflowUrl">URL Langflow для отправки в JIRA</label>
+                        <input type="url" id="jiraLangflowUrl"
+                            placeholder="http://localhost:7860/api/v1/run/JIRA_FLOW_ID">
+                        <p class="info-text">Endpoint для отправки тестов в JIRA</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="apiKey">API Key (опционально)</label>
+                        <input type="text" id="apiKey" placeholder="Ваш API ключ">
+                        <p class="info-text">Оставьте пустым, если не требуется авторизация</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="apiFormat">Формат API</label>
+                        <select id="apiFormat">
+                            <option value="standard">Стандартный (input_value)</option>
+                            <option value="inputs">С использованием inputs</option>
+                            <option value="message">С использованием message</option>
+                        </select>
+                        <p class="info-text">Выберите формат в зависимости от версии Langflow</p>
+                    </div>
+                    <div class="input-group">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="mockModeEnabled" style="width: auto; cursor: pointer;">
+                            <span>🎭 Режим заглушек (Mock Mode)</span>
+                        </label>
+                        <p class="info-text">Тестирование UI без реальных запросов к Langflow. Использует демонстрационные данные из mock.js</p>
+                    </div>
+                    <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
+                    <h3 style="margin-bottom: 15px; font-size: 1em; color: var(--text-secondary);">🔗 Подключение к Jira</h3>
+                    <div class="input-group">
+                        <label for="jiraConnectionUrl">URL Jira</label>
+                        <input type="url" id="jiraConnectionUrl" placeholder="https://your-domain.atlassian.net">
+                        <p class="info-text">Базовый URL вашего Jira</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="jiraConnectionToken">Токен Jira</label>
+                        <input type="text" id="jiraConnectionToken" placeholder="Ваш API токен Jira">
+                        <p class="info-text">API токен для авторизации в Jira</p>
+                    </div>
+                    <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
+                    <h3 style="margin-bottom: 15px; font-size: 1em; color: var(--text-secondary);">📚 Подключение к Confluence</h3>
+                    <div class="input-group">
+                        <label for="confluenceUrl">URL Confluence</label>
+                        <input type="url" id="confluenceUrl" placeholder="https://your-domain.atlassian.net/wiki">
+                        <p class="info-text">Базовый URL вашего Confluence</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="confluenceToken">Токен Confluence</label>
+                        <input type="text" id="confluenceToken" placeholder="Ваш API токен Confluence">
+                        <p class="info-text">API токен для авторизации в Confluence</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="saveSettingsBtn">Сохранить настройки</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary btn-generate" id="generateBtn">🚀 Сгенерировать тесты</button>
+
+        <!-- Loader -->
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <div class="loader-text" id="loaderText">Подготовка к генерации...</div>
+            <div class="loader-substatus" id="loaderSubstatus"></div>
+        </div>
+
+        <!-- Result Section -->
+        <div class="result-section" id="resultSection">
+            <!-- Agent Chat -->
+            <div class="agent-chat" id="agentChat">
+                <div class="agent-chat-header">
+                    <div class="agent-chat-header-icon">🤖</div>
+                    <div>
+                        <h3>Чат с AI агентом</h3>
+                        <p>Выберите тест чекбоксом для редактирования</p>
+                    </div>
+                </div>
+                <div class="agent-chat-body">
+                    <div class="agent-chat-context" id="agentChatContext">
+                        <div class="agent-chat-context-header">
+                            <span>📋</span>
+                            <span class="agent-chat-context-title">Выбран тест для редактирования:</span>
+                        </div>
+                        <div class="agent-chat-context-test" id="agentChatContextTest"></div>
+                    </div>
+                    <div class="agent-chat-warning" id="agentChatWarning">
+                        <span style="color: var(--error);">⚠️</span>
+                        <span class="agent-chat-warning-text">Выберите только один тест для редактирования</span>
+                    </div>
+                    <div class="agent-chat-messages" id="agentChatMessages"></div>
+                    <div class="agent-chat-loader" id="agentChatLoader">
+                        <div class="agent-chat-loader-spinner"></div>
+                        <span>Агент обрабатывает ваш запрос...</span>
+                    </div>
+                </div>
+                <div class="agent-chat-input">
+                    <div class="agent-chat-input-wrapper">
+                        <textarea class="agent-chat-textarea" id="agentChatInput"
+                            placeholder="Напишите, что нужно изменить в тесте..."></textarea>
+                        <button class="btn btn-primary" id="agentChatSendBtn" disabled>
+                            <span>📤</span>
+                            <span>Отправить</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="testsSection" style="display: none;">
+                <div class="section-header">
+                    <div class="section-header-title">Сгенерированные тесты</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="btn btn-outline" id="toggleAllBtn">📂 Развернуть все</button>
+                        <div class="badge badge-primary" id="testsCount">0 тестов</div>
+                    </div>
+                </div>
+                <div class="tests-container" id="testsContainer"></div>
+
+                <!-- JIRA Export -->
+                <div class="jira-section" id="jiraSection">
+                    <div class="section-title">📤 Отправка тестов в JIRA Zephyr</div>
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <div class="badge badge-success" id="selectedCount">Выбрано: 0 тестов</div>
+                        <button class="btn btn-outline" id="selectAllBtn" style="color: var(--success);">Выбрать
+                            все</button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="input-group">
+                            <label for="jiraProjectKey">Project Key</label>
+                            <input type="text" id="jiraProjectKey" placeholder="PROJ" required>
+                            <p class="info-text">Ключ проекта в JIRA</p>
+                        </div>
+                        <div class="input-group">
+                            <label for="jiraFolderName">Название папки</label>
+                            <input type="text" id="jiraFolderName" placeholder="Sprint 1 / Feature Tests" required>
+                            <p class="info-text">Путь к папке в JIRA Zephyr</p>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success" id="btnSendJira" style="margin-top: 16px;">📤 Отправить выбранные
+                        тесты в JIRA</button>
+                    <div class="jira-status" id="jiraStatus"></div>
+                </div>
+            </div>
+
+            <div id="additionalChecksSection" style="display: none;">
+                <div class="additional-checks">
+                    <div class="additional-checks-title">Дополнительные проверки</div>
+                    <div id="additionalChecksContent"></div>
+                </div>
+            </div>
+
+            <div id="plainTextSection" style="display: none;">
+                <div class="result-title">
+                    <div class="result-title-text">
+                        <span class="success-icon">✓</span>
+                        <span>Результат генерации</span>
+                    </div>
+                    <button class="btn btn-outline" id="copyPlainTextBtn">📋 Копировать</button>
+                </div>
+                <div class="plain-text-content" id="plainTextContent"></div>
+            </div>
+
+            <div id="errorSection" style="display: none;">
+                <div class="result-title">
+                    <div class="result-title-text">
+                        <span class="error-icon">✕</span>
+                        <span>Ошибка генерации</span>
+                    </div>
+                </div>
+                <div class="error-content" id="errorContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="autosave" id="autosave"><span>✓</span><span>Данные сохранены</span></div>
+
+    <script src="mock.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
