@@ -106,11 +106,6 @@
                         <input type="text" id="jiraConnectionToken" placeholder="Ваш API токен Jira">
                         <p class="info-text">API токен для авторизации в Jira</p>
                     </div>
-                    <div class="input-group">
-                        <label for="jiraCustomFields">Дополнительные поля JIRA</label>
-                        <textarea id="jiraCustomFields" rows="5" placeholder='Каждое поле на новой строке в формате: ключ|название&#10;Например:&#10;priority|Приоритет&#10;assignee|Исполнитель&#10;labels|Метки'></textarea>
-                        <p class="info-text">Укажите дополнительные обязательные поля для выгрузки в JIRA. Формат: ключ|название (каждое поле на новой строке)</p>
-                    </div>
                     <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
                     <h3 style="margin-bottom: 15px; font-size: 1em; color: var(--text-secondary);">📚 Подключение к Confluence</h3>
                     <div class="input-group">
@@ -211,11 +206,6 @@
                             <input type="text" id="jiraFolderName" placeholder="Sprint 1 / Feature Tests" required>
                             <p class="info-text">Путь к папке в JIRA Zephyr</p>
                         </div>
-                    </div>
-
-                    <div id="jiraCustomFieldsContainer" style="display: none; margin-top: 16px;">
-                        <h4 style="font-size: 0.95em; margin-bottom: 12px; color: var(--text-secondary);">Дополнительные поля</h4>
-                        <div id="jiraCustomFieldsInputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"></div>
                     </div>
 
                     <button class="btn btn-success" id="btnSendJira" style="margin-top: 16px;">📤 Отправить выбранные
