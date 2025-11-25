@@ -30,11 +30,12 @@ const domIds = [
     'featureList', 'addFeatureBtn', 'checklistUrl', 'langflowUrl',
     'agentChatLangflowUrl', 'jiraLangflowUrl',
     'apiKey', 'apiFormat', 'mockModeEnabled', 'jiraConnectionUrl', 'jiraConnectionToken',
-    'confluenceUrl', 'confluenceToken', 'generateBtn', 'loader', 'loaderText',
+    'jiraCustomFields', 'confluenceUrl', 'confluenceToken', 'generateBtn', 'loader', 'loaderText',
     'loaderSubstatus', 'resultSection', 'testsSection', 'testsContainer',
     'testsCount', 'toggleAllBtn', 'jiraSection', 'selectedCount',
     'selectAllBtn', 'jiraProjectKey', 'jiraFolderName', 'btnSendJira',
-    'jiraStatus', 'additionalChecksSection', 'additionalChecksContent',
+    'jiraStatus', 'jiraCustomFieldsContainer', 'jiraCustomFieldsInputs',
+    'additionalChecksSection', 'additionalChecksContent',
     'plainTextSection', 'plainTextContent', 'copyPlainTextBtn',
     'errorSection', 'errorContent', 'agentChat', 'agentChatContext',
     'agentChatContextTest', 'agentChatWarning', 'agentChatMessages',
@@ -123,6 +124,7 @@ const saveForm = () => {
             mockModeEnabled: dom.mockModeEnabled?.checked || false,
             jiraConnectionUrl: dom.jiraConnectionUrl?.value.trim() || '',
             jiraConnectionToken: dom.jiraConnectionToken?.value.trim() || '',
+            jiraCustomFields: dom.jiraCustomFields?.value.trim() || '',
             confluenceUrl: dom.confluenceUrl?.value.trim() || '',
             confluenceToken: dom.confluenceToken?.value.trim() || '',
             jiraProjectKey: dom.jiraProjectKey.value.trim(),
@@ -130,6 +132,10 @@ const saveForm = () => {
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         showAutosave();
+        // Update JIRA custom fields UI if settings changed
+        if (dom.jiraCustomFields) {
+            renderJiraCustomFields();
+        }
     }, AUTOSAVE_DELAY);
 };
 
@@ -170,7 +176,7 @@ const loadForm = () => {
 
         ['checklistUrl', 'langflowUrl', 'agentChatLangflowUrl', 'jiraLangflowUrl',
          'apiKey', 'apiFormat', 'jiraConnectionUrl', 'jiraConnectionToken',
-         'confluenceUrl', 'confluenceToken', 'jiraProjectKey', 'jiraFolderName']
+         'jiraCustomFields', 'confluenceUrl', 'confluenceToken', 'jiraProjectKey', 'jiraFolderName']
             .forEach(f => { if (data[f] && dom[f]) dom[f].value = data[f]; });
 
         // Restore checkbox state for mockModeEnabled
@@ -178,6 +184,9 @@ const loadForm = () => {
             dom.mockModeEnabled.checked = data.mockModeEnabled;
             toggleMockIndicator(data.mockModeEnabled);
         }
+
+        // Render JIRA custom fields if configured
+        renderJiraCustomFields();
     } catch (e) {
         console.error('Load error:', e);
     }
@@ -552,6 +561,7 @@ const showResults = data => {
         data.tests.forEach((t, i) => dom.testsContainer.appendChild(createCard(t, i)));
         dom.toggleAllBtn.textContent = ICONS.expand;
         dom.jiraSection.classList.add('active');
+        renderJiraCustomFields();
         updateSelection();
     }
 
@@ -580,6 +590,71 @@ const showPlainText = text => {
     dom.resultSection.classList.add('active');
 };
 
+// ==================== JIRA CUSTOM FIELDS ====================
+const parseJiraCustomFields = () => {
+    const config = dom.jiraCustomFields?.value.trim() || '';
+    if (!config) return [];
+
+    return config.split('\n')
+        .map(line => line.trim())
+        .filter(line => line && line.includes('|'))
+        .map(line => {
+            const [key, label] = line.split('|').map(s => s.trim());
+            return { key, label };
+        })
+        .filter(field => field.key && field.label);
+};
+
+const renderJiraCustomFields = () => {
+    if (!dom.jiraCustomFieldsInputs) return;
+
+    const fields = parseJiraCustomFields();
+
+    if (fields.length === 0) {
+        dom.jiraCustomFieldsContainer.style.display = 'none';
+        dom.jiraCustomFieldsInputs.innerHTML = '';
+        return;
+    }
+
+    dom.jiraCustomFieldsContainer.style.display = 'block';
+    dom.jiraCustomFieldsInputs.innerHTML = '';
+
+    fields.forEach(field => {
+        const inputGroup = document.createElement('div');
+        inputGroup.className = 'input-group';
+
+        const label = document.createElement('label');
+        label.setAttribute('for', `jiraCustomField_${field.key}`);
+        label.textContent = field.label;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = `jiraCustomField_${field.key}`;
+        input.className = 'jira-custom-field-input';
+        input.dataset.key = field.key;
+        input.placeholder = `Введите ${field.label}`;
+
+        inputGroup.appendChild(label);
+        inputGroup.appendChild(input);
+        dom.jiraCustomFieldsInputs.appendChild(inputGroup);
+    });
+};
+
+const getJiraCustomFieldsValues = () => {
+    const inputs = document.querySelectorAll('.jira-custom-field-input');
+    const values = {};
+
+    inputs.forEach(input => {
+        const key = input.dataset.key;
+        const value = input.value.trim();
+        if (key && value) {
+            values[key] = value;
+        }
+    });
+
+    return values;
+};
+
 // ==================== JIRA (Parallel requests) ====================
 const sendJira = async () => {
     const projectKey = dom.jiraProjectKey.value.trim();
@@ -602,6 +677,9 @@ const sendJira = async () => {
     const jiraConnectionUrl = dom.jiraConnectionUrl?.value.trim() || '';
     const jiraConnectionToken = dom.jiraConnectionToken?.value.trim() || '';
 
+    // Get custom fields values
+    const customFieldsValues = getJiraCustomFieldsValues();
+
     // Send all requests in parallel
     const results = await Promise.all(selected.map(async test => {
         try {
@@ -611,7 +689,8 @@ const sendJira = async () => {
                 testName: test.id,
                 testContent: test.content,
                 jiraUrl: jiraConnectionUrl,
-                jiraToken: jiraConnectionToken
+                jiraToken: jiraConnectionToken,
+                ...customFieldsValues
             });
 
             // Mock Mode: использовать заглушку вместо реального API
@@ -801,6 +880,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadForm();
     updateRemoveBtns();
+    renderJiraCustomFields();
 
     // Event delegation
     document.addEventListener('click', e => {
