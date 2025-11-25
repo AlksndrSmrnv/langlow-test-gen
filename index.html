@@ -106,6 +106,11 @@
                         <input type="text" id="jiraConnectionToken" placeholder="Ваш API токен Jira">
                         <p class="info-text">API токен для авторизации в Jira</p>
                     </div>
+                    <div class="input-group">
+                        <label for="jiraCustomFields">Дополнительные обязательные поля JIRA (JSON)</label>
+                        <textarea id="jiraCustomFields" rows="6" placeholder='{"customfield_10001": "value1", "priority": {"id": "3"}, "labels": ["label1"]}'></textarea>
+                        <p class="info-text">JSON объект с дополнительными полями, которые требуются при создании тестов в JIRA. Например: {"customfield_10001": "значение", "priority": {"id": "3"}}</p>
+                    </div>
                     <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
                     <h3 style="margin-bottom: 15px; font-size: 1em; color: var(--text-secondary);">📚 Подключение к Confluence</h3>
                     <div class="input-group">

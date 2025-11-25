@@ -30,7 +30,7 @@ const domIds = [
     'featureList', 'addFeatureBtn', 'checklistUrl', 'langflowUrl',
     'agentChatLangflowUrl', 'jiraLangflowUrl',
     'apiKey', 'apiFormat', 'mockModeEnabled', 'jiraConnectionUrl', 'jiraConnectionToken',
-    'confluenceUrl', 'confluenceToken', 'generateBtn', 'loader', 'loaderText',
+    'jiraCustomFields', 'confluenceUrl', 'confluenceToken', 'generateBtn', 'loader', 'loaderText',
     'loaderSubstatus', 'resultSection', 'testsSection', 'testsContainer',
     'testsCount', 'toggleAllBtn', 'jiraSection', 'selectedCount',
     'selectAllBtn', 'jiraProjectKey', 'jiraFolderName', 'btnSendJira',
@@ -123,6 +123,7 @@ const saveForm = () => {
             mockModeEnabled: dom.mockModeEnabled?.checked || false,
             jiraConnectionUrl: dom.jiraConnectionUrl?.value.trim() || '',
             jiraConnectionToken: dom.jiraConnectionToken?.value.trim() || '',
+            jiraCustomFields: dom.jiraCustomFields?.value.trim() || '',
             confluenceUrl: dom.confluenceUrl?.value.trim() || '',
             confluenceToken: dom.confluenceToken?.value.trim() || '',
             jiraProjectKey: dom.jiraProjectKey.value.trim(),
@@ -169,7 +170,7 @@ const loadForm = () => {
         }
 
         ['checklistUrl', 'langflowUrl', 'agentChatLangflowUrl', 'jiraLangflowUrl',
-         'apiKey', 'apiFormat', 'jiraConnectionUrl', 'jiraConnectionToken',
+         'apiKey', 'apiFormat', 'jiraConnectionUrl', 'jiraConnectionToken', 'jiraCustomFields',
          'confluenceUrl', 'confluenceToken', 'jiraProjectKey', 'jiraFolderName']
             .forEach(f => { if (data[f] && dom[f]) dom[f].value = data[f]; });
 
@@ -601,18 +602,31 @@ const sendJira = async () => {
     // Get Jira connection settings
     const jiraConnectionUrl = dom.jiraConnectionUrl?.value.trim() || '';
     const jiraConnectionToken = dom.jiraConnectionToken?.value.trim() || '';
+    const jiraCustomFieldsStr = dom.jiraCustomFields?.value.trim() || '';
+
+    // Parse custom fields JSON
+    let customFields = {};
+    if (jiraCustomFieldsStr) {
+        try {
+            customFields = JSON.parse(jiraCustomFieldsStr);
+        } catch (e) {
+            return alert(`Ошибка в JSON дополнительных полей JIRA: ${e.message}`);
+        }
+    }
 
     // Send all requests in parallel
     const results = await Promise.all(selected.map(async test => {
         try {
-            const data = JSON.stringify({
+            const payload = {
                 projectKey,
                 folderName,
                 testName: test.id,
                 testContent: test.content,
                 jiraUrl: jiraConnectionUrl,
-                jiraToken: jiraConnectionToken
-            });
+                jiraToken: jiraConnectionToken,
+                ...customFields
+            };
+            const data = JSON.stringify(payload);
 
             // Mock Mode: использовать заглушку вместо реального API
             if (settings.mockMode && window.mockFetch) {
