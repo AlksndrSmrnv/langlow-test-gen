@@ -33,7 +33,7 @@ const domIds = [
     'confluenceUrl', 'confluenceToken', 'generateBtn', 'loader', 'loaderText',
     'loaderSubstatus', 'resultSection', 'testsSection', 'testsContainer',
     'testsCount', 'toggleAllBtn', 'jiraSection', 'selectedCount',
-    'selectAllBtn', 'jiraProjectKey', 'jiraFolderName', 'btnSendJira',
+    'selectAllBtn', 'jiraProjectKey', 'jiraFolderName', 'jiraConfigurationElement', 'jiraTestType', 'btnSendJira',
     'jiraStatus', 'additionalChecksSection', 'additionalChecksContent',
     'plainTextSection', 'plainTextContent', 'copyPlainTextBtn',
     'errorSection', 'errorContent', 'agentChat', 'agentChatContext',
@@ -95,6 +95,12 @@ const headers = key => {
     return h;
 };
 
+const headersXml = key => {
+    const h = { 'Content-Type': 'application/xml' };
+    if (key) { h['Authorization'] = `Bearer ${key}`; h['x-api-key'] = key; }
+    return h;
+};
+
 const extractResponse = r =>
     r.outputs?.[0]?.outputs?.[0]?.results?.message?.text ||
     r.result || r.message || JSON.stringify(r, null, 2);
@@ -126,7 +132,9 @@ const saveForm = () => {
             confluenceUrl: dom.confluenceUrl?.value.trim() || '',
             confluenceToken: dom.confluenceToken?.value.trim() || '',
             jiraProjectKey: dom.jiraProjectKey.value.trim(),
-            jiraFolderName: dom.jiraFolderName.value.trim()
+            jiraFolderName: dom.jiraFolderName.value.trim(),
+            jiraConfigurationElement: dom.jiraConfigurationElement?.value.trim() || '',
+            jiraTestType: dom.jiraTestType?.value.trim() || ''
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         showAutosave();
@@ -170,7 +178,8 @@ const loadForm = () => {
 
         ['checklistUrl', 'langflowUrl', 'agentChatLangflowUrl', 'jiraLangflowUrl',
          'apiKey', 'apiFormat', 'jiraConnectionUrl', 'jiraConnectionToken',
-         'confluenceUrl', 'confluenceToken', 'jiraProjectKey', 'jiraFolderName']
+         'confluenceUrl', 'confluenceToken', 'jiraProjectKey', 'jiraFolderName',
+         'jiraConfigurationElement', 'jiraTestType']
             .forEach(f => { if (data[f] && dom[f]) dom[f].value = data[f]; });
 
         // Restore checkbox state for mockModeEnabled
@@ -601,23 +610,27 @@ const sendJira = async () => {
     // Get Jira connection settings
     const jiraConnectionUrl = dom.jiraConnectionUrl?.value.trim() || '';
     const jiraConnectionToken = dom.jiraConnectionToken?.value.trim() || '';
+    const jiraConfigurationElement = dom.jiraConfigurationElement?.value.trim() || '';
+    const jiraTestType = dom.jiraTestType?.value.trim() || '';
 
     // Send all requests in parallel
     const results = await Promise.all(selected.map(async test => {
         try {
-            const data = JSON.stringify({
+            const xmlData = buildJiraXML(
                 projectKey,
                 folderName,
-                testName: test.id,
-                testContent: test.content,
-                jiraUrl: jiraConnectionUrl,
-                jiraToken: jiraConnectionToken
-            });
+                test.id,
+                test.content,
+                jiraConnectionUrl,
+                jiraConnectionToken,
+                jiraConfigurationElement,
+                jiraTestType
+            );
 
             // Mock Mode: использовать заглушку вместо реального API
             if (settings.mockMode && window.mockFetch) {
                 console.log('🎭 Mock Mode: Using mock data for JIRA export');
-                await window.mockFetch('jira', { data });
+                await window.mockFetch('jira', { xmlData });
                 return {
                     ok: true,
                     name: test.id,
@@ -627,8 +640,8 @@ const sendJira = async () => {
                 // Реальный API запрос
                 const res = await fetch(settings.jiraUrl, {
                     method: 'POST',
-                    headers: headers(settings.apiKey),
-                    body: JSON.stringify(buildBody(data, settings.format, sessionId()))
+                    headers: headersXml(settings.apiKey),
+                    body: xmlData
                 });
                 return {
                     ok: res.ok,
@@ -686,6 +699,22 @@ const buildXML = () => {
     if (confluenceToken) xml += `  <confluence_token>${escapeHtml(confluenceToken)}</confluence_token>\n`;
     xml += `</test_generation>`;
 
+    return xml;
+};
+
+const buildJiraXML = (projectKey, folderName, testName, testContent, jiraUrl, jiraToken, configurationElement, testType) => {
+    let xml = '<jira_export>\n';
+    xml += '  <test>\n';
+    xml += `    <projectKey>${escapeHtml(projectKey)}</projectKey>\n`;
+    xml += `    <folderName>${escapeHtml(folderName)}</folderName>\n`;
+    xml += `    <testName>${escapeHtml(testName)}</testName>\n`;
+    xml += `    <testContent>${escapeHtml(testContent)}</testContent>\n`;
+    if (configurationElement) xml += `    <configurationElement>${escapeHtml(configurationElement)}</configurationElement>\n`;
+    if (testType) xml += `    <testType>${escapeHtml(testType)}</testType>\n`;
+    xml += '  </test>\n';
+    xml += `  <jiraConnectionUrl>${escapeHtml(jiraUrl)}</jiraConnectionUrl>\n`;
+    xml += `  <jiraConnectionToken>${escapeHtml(jiraToken)}</jiraConnectionToken>\n`;
+    xml += '</jira_export>';
     return xml;
 };
 
