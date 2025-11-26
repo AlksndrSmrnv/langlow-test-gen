@@ -34,7 +34,7 @@ const domIds = [
     'jiraConnectionUrl', 'jiraConnectionToken',
     'jiraConnectionUrlD', 'jiraConnectionTokenD',
     'jiraConnectionUrlS', 'jiraConnectionTokenS',
-    'jiraTypeD', 'jiraTypeS',
+    'jiraTypeToggle', 'jiraLabelD', 'jiraLabelS',
     'confluenceToken', 'generateBtn', 'loader', 'loaderText',
     'loaderSubstatus', 'resultSection', 'testsSection', 'testsContainer',
     'testsCount', 'toggleAllBtn', 'jiraSection', 'selectedCount',
@@ -136,7 +136,7 @@ const saveForm = () => {
             jiraConnectionTokenD: dom.jiraConnectionTokenD?.value.trim() || '',
             jiraConnectionUrlS: dom.jiraConnectionUrlS?.value.trim() || '',
             jiraConnectionTokenS: dom.jiraConnectionTokenS?.value.trim() || '',
-            jiraType: dom.jiraTypeD?.checked ? 'D' : 'S',
+            jiraType: dom.jiraTypeToggle?.checked ? 'S' : 'D',
             confluenceToken: dom.confluenceToken?.value.trim() || '',
             jiraProjectKey: dom.jiraProjectKey.value.trim(),
             jiraFolderName: dom.jiraFolderName.value.trim(),
@@ -198,12 +198,9 @@ const loadForm = () => {
         }
 
         // Restore Jira type selection
-        if (data.jiraType !== undefined) {
-            if (data.jiraType === 'D' && dom.jiraTypeD) {
-                dom.jiraTypeD.checked = true;
-            } else if (data.jiraType === 'S' && dom.jiraTypeS) {
-                dom.jiraTypeS.checked = true;
-            }
+        if (data.jiraType !== undefined && dom.jiraTypeToggle) {
+            dom.jiraTypeToggle.checked = data.jiraType === 'S';
+            updateJiraToggleLabels();
         }
 
         // Update hidden fields based on selected Jira type
@@ -227,27 +224,45 @@ const toggleMockIndicator = (show) => {
     }
 };
 
+// Update Jira toggle labels styling
+const updateJiraToggleLabels = () => {
+    if (!dom.jiraLabelD || !dom.jiraLabelS || !dom.jiraTypeToggle) return;
+
+    const isJiraS = dom.jiraTypeToggle.checked;
+
+    if (isJiraS) {
+        dom.jiraLabelD.classList.remove('active');
+        dom.jiraLabelS.classList.add('active');
+    } else {
+        dom.jiraLabelD.classList.add('active');
+        dom.jiraLabelS.classList.remove('active');
+    }
+};
+
 // Update Jira connection based on selected type (D or S)
 const updateJiraConnection = () => {
     if (!dom.jiraConnectionUrl || !dom.jiraConnectionToken) return;
 
-    const isJiraD = dom.jiraTypeD?.checked;
-    const jiraType = isJiraD ? 'D' : 'S';
+    const isJiraS = dom.jiraTypeToggle?.checked;
+    const jiraType = isJiraS ? 'S' : 'D';
 
-    if (isJiraD) {
-        // Use Jira D credentials
-        dom.jiraConnectionUrl.value = dom.jiraConnectionUrlD?.value.trim() || '';
-        dom.jiraConnectionToken.value = dom.jiraConnectionTokenD?.value.trim() || '';
-    } else {
+    if (isJiraS) {
         // Use Jira S credentials
         dom.jiraConnectionUrl.value = dom.jiraConnectionUrlS?.value.trim() || '';
         dom.jiraConnectionToken.value = dom.jiraConnectionTokenS?.value.trim() || '';
+    } else {
+        // Use Jira D credentials
+        dom.jiraConnectionUrl.value = dom.jiraConnectionUrlD?.value.trim() || '';
+        dom.jiraConnectionToken.value = dom.jiraConnectionTokenD?.value.trim() || '';
     }
 
     // Update button text
     if (dom.btnSendJira) {
-        dom.btnSendJira.textContent = `📤 Отправить выбранные тесты в Jira ${jiraType}`;
+        dom.btnSendJira.textContent = `📤 Отправить выбранные тесты в Jira`;
     }
+
+    // Update toggle labels
+    updateJiraToggleLabels();
 };
 
 // ==================== MODAL ====================
@@ -784,7 +799,7 @@ const sendJira = async () => {
 
     dom.jiraStatus.className = err ? 'jira-status error' : 'jira-status success';
 
-    const jiraType = dom.jiraTypeD?.checked ? 'D' : 'S';
+    const jiraType = dom.jiraTypeToggle?.checked ? 'S' : 'D';
     const statusHeader = document.createElement('div');
     statusHeader.style.cssText = 'font-size: 1.1em; margin-bottom: 10px;';
     statusHeader.textContent = err
@@ -1023,7 +1038,7 @@ document.addEventListener('DOMContentLoaded', () => {
             handleImportFile(e);
         }
         // Jira type toggle (D or S)
-        if (e.target.name === 'jiraType') {
+        if (e.target.id === 'jiraTypeToggle') {
             updateJiraConnection();
             saveForm();
         }

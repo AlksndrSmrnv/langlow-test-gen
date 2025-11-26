@@ -221,17 +221,15 @@
 
                     <div class="input-group" style="margin-bottom: 20px;">
                         <label>Выберите Jira инстанс</label>
-                        <div style="display: flex; gap: 15px; align-items: center;">
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                <input type="radio" name="jiraType" value="D" id="jiraTypeD" checked style="cursor: pointer;">
-                                <span>Jira D</span>
+                        <div class="jira-toggle-container">
+                            <span class="jira-toggle-label" id="jiraLabelD">Jira D</span>
+                            <label class="jira-toggle-switch">
+                                <input type="checkbox" id="jiraTypeToggle">
+                                <span class="jira-toggle-slider"></span>
                             </label>
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                <input type="radio" name="jiraType" value="S" id="jiraTypeS" style="cursor: pointer;">
-                                <span>Jira S</span>
-                            </label>
+                            <span class="jira-toggle-label" id="jiraLabelS">Jira S</span>
                         </div>
-                        <p class="info-text">Выберите в какую Jira отправлять тесты</p>
+                        <p class="info-text">Переключите между Jira D и Jira S</p>
                     </div>
 
                     <!-- Скрытые поля для хранения текущих значений -->
@@ -252,7 +250,7 @@
                         <div class="input-group">
                             <label for="jiraConfigurationElement">АС(КЭ)</label>
                             <input type="text" id="jiraConfigurationElement" placeholder="АС(КЭ)">
-                            <p class="info-text">Автоматизированная система (Критерии эффективности)</p>
+                            <p class="info-text">Автоматизированная система (конфигурационный элемент)</p>
                         </div>
                         <div class="input-group">
                             <label for="jiraTestType">Вид тестирования</label>
