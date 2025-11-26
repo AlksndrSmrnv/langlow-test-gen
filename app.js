@@ -640,8 +640,8 @@ const sendJira = async () => {
                 // Реальный API запрос
                 const res = await fetch(settings.jiraUrl, {
                     method: 'POST',
-                    headers: headersXml(settings.apiKey),
-                    body: xmlData
+                    headers: headers(settings.apiKey),
+                    body: JSON.stringify(buildBody(xmlData, settings.format, sessionId()))
                 });
                 return {
                     ok: res.ok,
