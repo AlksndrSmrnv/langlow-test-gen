@@ -30,7 +30,11 @@ const domIds = [
     'exportSettingsBtn', 'importSettingsBtn', 'importSettingsFile',
     'featureList', 'addFeatureBtn', 'checklistUrl', 'langflowUrl',
     'agentChatLangflowUrl', 'jiraLangflowUrl',
-    'apiKey', 'apiFormat', 'mockModeEnabled', 'jiraConnectionUrl', 'jiraConnectionToken',
+    'apiKey', 'apiFormat', 'mockModeEnabled',
+    'jiraConnectionUrl', 'jiraConnectionToken',
+    'jiraConnectionUrlD', 'jiraConnectionTokenD',
+    'jiraConnectionUrlS', 'jiraConnectionTokenS',
+    'jiraTypeD', 'jiraTypeS',
     'confluenceToken', 'generateBtn', 'loader', 'loaderText',
     'loaderSubstatus', 'resultSection', 'testsSection', 'testsContainer',
     'testsCount', 'toggleAllBtn', 'jiraSection', 'selectedCount',
@@ -128,8 +132,11 @@ const saveForm = () => {
             apiKey: dom.apiKey.value.trim(),
             apiFormat: dom.apiFormat.value,
             mockModeEnabled: dom.mockModeEnabled?.checked || false,
-            jiraConnectionUrl: dom.jiraConnectionUrl?.value.trim() || '',
-            jiraConnectionToken: dom.jiraConnectionToken?.value.trim() || '',
+            jiraConnectionUrlD: dom.jiraConnectionUrlD?.value.trim() || '',
+            jiraConnectionTokenD: dom.jiraConnectionTokenD?.value.trim() || '',
+            jiraConnectionUrlS: dom.jiraConnectionUrlS?.value.trim() || '',
+            jiraConnectionTokenS: dom.jiraConnectionTokenS?.value.trim() || '',
+            jiraType: dom.jiraTypeD?.checked ? 'D' : 'S',
             confluenceToken: dom.confluenceToken?.value.trim() || '',
             jiraProjectKey: dom.jiraProjectKey.value.trim(),
             jiraFolderName: dom.jiraFolderName.value.trim(),
@@ -177,7 +184,9 @@ const loadForm = () => {
         }
 
         ['checklistUrl', 'langflowUrl', 'agentChatLangflowUrl', 'jiraLangflowUrl',
-         'apiKey', 'apiFormat', 'jiraConnectionUrl', 'jiraConnectionToken',
+         'apiKey', 'apiFormat',
+         'jiraConnectionUrlD', 'jiraConnectionTokenD',
+         'jiraConnectionUrlS', 'jiraConnectionTokenS',
          'confluenceToken', 'jiraProjectKey', 'jiraFolderName',
          'jiraConfigurationElement', 'jiraTestType']
             .forEach(f => { if (data[f] && dom[f]) dom[f].value = data[f]; });
@@ -187,6 +196,18 @@ const loadForm = () => {
             dom.mockModeEnabled.checked = data.mockModeEnabled;
             toggleMockIndicator(data.mockModeEnabled);
         }
+
+        // Restore Jira type selection
+        if (data.jiraType !== undefined) {
+            if (data.jiraType === 'D' && dom.jiraTypeD) {
+                dom.jiraTypeD.checked = true;
+            } else if (data.jiraType === 'S' && dom.jiraTypeS) {
+                dom.jiraTypeS.checked = true;
+            }
+        }
+
+        // Update hidden fields based on selected Jira type
+        updateJiraConnection();
     } catch (e) {
         console.error('Load error:', e);
     }
@@ -203,6 +224,29 @@ const toggleMockIndicator = (show) => {
     } else if (!show && indicator) {
         // Remove indicator if it exists
         indicator.remove();
+    }
+};
+
+// Update Jira connection based on selected type (D or S)
+const updateJiraConnection = () => {
+    if (!dom.jiraConnectionUrl || !dom.jiraConnectionToken) return;
+
+    const isJiraD = dom.jiraTypeD?.checked;
+    const jiraType = isJiraD ? 'D' : 'S';
+
+    if (isJiraD) {
+        // Use Jira D credentials
+        dom.jiraConnectionUrl.value = dom.jiraConnectionUrlD?.value.trim() || '';
+        dom.jiraConnectionToken.value = dom.jiraConnectionTokenD?.value.trim() || '';
+    } else {
+        // Use Jira S credentials
+        dom.jiraConnectionUrl.value = dom.jiraConnectionUrlS?.value.trim() || '';
+        dom.jiraConnectionToken.value = dom.jiraConnectionTokenS?.value.trim() || '';
+    }
+
+    // Update button text
+    if (dom.btnSendJira) {
+        dom.btnSendJira.textContent = `📤 Отправить выбранные тесты в Jira ${jiraType}`;
     }
 };
 
@@ -740,11 +784,12 @@ const sendJira = async () => {
 
     dom.jiraStatus.className = err ? 'jira-status error' : 'jira-status success';
 
+    const jiraType = dom.jiraTypeD?.checked ? 'D' : 'S';
     const statusHeader = document.createElement('div');
     statusHeader.style.cssText = 'font-size: 1.1em; margin-bottom: 10px;';
     statusHeader.textContent = err
         ? `⚠️ Отправлено: ${ok}, Ошибок: ${err}`
-        : '✓ Все тесты успешно отправлены в Jira D!';
+        : `✓ Все тесты успешно отправлены в Jira ${jiraType}!`;
     dom.jiraStatus.appendChild(statusHeader);
 
     results.forEach(r => {
@@ -909,6 +954,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadForm();
     updateRemoveBtns();
+    updateJiraConnection();
 
     // Event delegation
     document.addEventListener('click', e => {
@@ -975,6 +1021,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Import settings file
         if (e.target.id === 'importSettingsFile') {
             handleImportFile(e);
+        }
+        // Jira type toggle (D or S)
+        if (e.target.name === 'jiraType') {
+            updateJiraConnection();
+            saveForm();
         }
     });
 
