@@ -74,7 +74,7 @@
                         <p class="info-text">Endpoint для отправки тестов в JIRA</p>
                     </div>
                     <div class="input-group">
-                        <label for="apiKey">API Key (опционально)</label>
+                        <label for="apiKey">API Key</label>
                         <div class="token-input-wrapper">
                             <input type="password" id="apiKey" placeholder="Ваш API ключ">
                             <button type="button" class="btn-toggle-token" data-target="apiKey" title="Показать/скрыть">👁️</button>
@@ -98,7 +98,7 @@
                         <p class="info-text">Тестирование UI без реальных запросов к Langflow. Использует демонстрационные данные из mock.js</p>
                     </div>
                     <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
-                    <h3 style="margin-bottom: 15px; font-size: 1em; color: var(--text-secondary);">🔗 Подключение к Jira</h3>
+                    <h3 style="margin-bottom: 15px; font-size: 1em; color: var(--text-secondary);">🔗 Подключение к Jira D</h3>
                     <div class="input-group">
                         <label for="jiraConnectionUrl">URL Jira</label>
                         <input type="url" id="jiraConnectionUrl" placeholder="https://your-domain.atlassian.net">
@@ -115,11 +115,6 @@
                     <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
                     <h3 style="margin-bottom: 15px; font-size: 1em; color: var(--text-secondary);">📚 Подключение к Confluence</h3>
                     <div class="input-group">
-                        <label for="confluenceUrl">URL Confluence</label>
-                        <input type="url" id="confluenceUrl" placeholder="https://your-domain.atlassian.net/wiki">
-                        <p class="info-text">Базовый URL вашего Confluence</p>
-                    </div>
-                    <div class="input-group">
                         <label for="confluenceToken">Токен Confluence</label>
                         <div class="token-input-wrapper">
                             <input type="password" id="confluenceToken" placeholder="Ваш API токен Confluence">
@@ -130,8 +125,8 @@
                 </div>
                 <div class="modal-footer">
                     <div class="modal-footer-left">
-                        <button class="btn btn-outline" id="exportSettingsBtn">📥 Экспорт настроек</button>
-                        <button class="btn btn-outline" id="importSettingsBtn">📤 Импорт настроек</button>
+                        <button class="btn btn-outline" id="exportSettingsBtn">📤 Экспорт настроек</button>
+                        <button class="btn btn-outline" id="importSettingsBtn">📥 Импорт настроек</button>
                         <input type="file" id="importSettingsFile" accept=".json" style="display: none;">
                     </div>
                     <button class="btn btn-primary" id="saveSettingsBtn">Сохранить настройки</button>
@@ -201,7 +196,7 @@
 
                 <!-- JIRA Export -->
                 <div class="jira-section" id="jiraSection">
-                    <div class="section-title">📤 Отправка тестов в JIRA Zephyr</div>
+                    <div class="section-title">📤 Отправка тестов в Jira D Zephyr</div>
                     <div
                         style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
                         <div class="badge badge-success" id="selectedCount">Выбрано: 0 тестов</div>
@@ -233,7 +228,7 @@
                     </div>
 
                     <button class="btn btn-success" id="btnSendJira" style="margin-top: 16px;">📤 Отправить выбранные
-                        тесты в JIRA</button>
+                        тесты в Jira D</button>
                     <div class="jira-status" id="jiraStatus"></div>
                 </div>
             </div>

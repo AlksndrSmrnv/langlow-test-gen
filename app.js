@@ -31,7 +31,7 @@ const domIds = [
     'featureList', 'addFeatureBtn', 'checklistUrl', 'langflowUrl',
     'agentChatLangflowUrl', 'jiraLangflowUrl',
     'apiKey', 'apiFormat', 'mockModeEnabled', 'jiraConnectionUrl', 'jiraConnectionToken',
-    'confluenceUrl', 'confluenceToken', 'generateBtn', 'loader', 'loaderText',
+    'confluenceToken', 'generateBtn', 'loader', 'loaderText',
     'loaderSubstatus', 'resultSection', 'testsSection', 'testsContainer',
     'testsCount', 'toggleAllBtn', 'jiraSection', 'selectedCount',
     'selectAllBtn', 'jiraProjectKey', 'jiraFolderName', 'jiraConfigurationElement', 'jiraTestType', 'btnSendJira',
@@ -130,7 +130,6 @@ const saveForm = () => {
             mockModeEnabled: dom.mockModeEnabled?.checked || false,
             jiraConnectionUrl: dom.jiraConnectionUrl?.value.trim() || '',
             jiraConnectionToken: dom.jiraConnectionToken?.value.trim() || '',
-            confluenceUrl: dom.confluenceUrl?.value.trim() || '',
             confluenceToken: dom.confluenceToken?.value.trim() || '',
             jiraProjectKey: dom.jiraProjectKey.value.trim(),
             jiraFolderName: dom.jiraFolderName.value.trim(),
@@ -179,7 +178,7 @@ const loadForm = () => {
 
         ['checklistUrl', 'langflowUrl', 'agentChatLangflowUrl', 'jiraLangflowUrl',
          'apiKey', 'apiFormat', 'jiraConnectionUrl', 'jiraConnectionToken',
-         'confluenceUrl', 'confluenceToken', 'jiraProjectKey', 'jiraFolderName',
+         'confluenceToken', 'jiraProjectKey', 'jiraFolderName',
          'jiraConfigurationElement', 'jiraTestType']
             .forEach(f => { if (data[f] && dom[f]) dom[f].value = data[f]; });
 
@@ -745,7 +744,7 @@ const sendJira = async () => {
     statusHeader.style.cssText = 'font-size: 1.1em; margin-bottom: 10px;';
     statusHeader.textContent = err
         ? `⚠️ Отправлено: ${ok}, Ошибок: ${err}`
-        : '✓ Все тесты успешно отправлены в JIRA!';
+        : '✓ Все тесты успешно отправлены в Jira D!';
     dom.jiraStatus.appendChild(statusHeader);
 
     results.forEach(r => {
@@ -761,14 +760,13 @@ const sendJira = async () => {
     });
 
     dom.btnSendJira.disabled = false;
-    dom.btnSendJira.textContent = '📤 Отправить выбранные тесты в JIRA';
+    dom.btnSendJira.textContent = '📤 Отправить выбранные тесты в Jira D';
 };
 
 // ==================== GENERATE ====================
 const buildXML = () => {
     const features = Array.from($('.feature-input')).map(i => i.value.trim()).filter(Boolean);
     const checklist = dom.checklistUrl.value.trim();
-    const confluenceUrl = dom.confluenceUrl?.value.trim() || '';
     const confluenceToken = dom.confluenceToken?.value.trim() || '';
 
     if (!features.length) throw new Error('Добавьте хотя бы одну страницу с описанием фичи');
@@ -777,7 +775,6 @@ const buildXML = () => {
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<test_generation>\n`;
     xml += features.map(f => `  <feature>${escapeHtml(f)}</feature>`).join('\n') + '\n';
     xml += `  <checklist>${escapeHtml(checklist)}</checklist>\n`;
-    if (confluenceUrl) xml += `  <confluence_url>${escapeHtml(confluenceUrl)}</confluence_url>\n`;
     if (confluenceToken) xml += `  <confluence_token>${escapeHtml(confluenceToken)}</confluence_token>\n`;
     xml += `</test_generation>`;
 
