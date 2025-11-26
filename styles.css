@@ -368,7 +368,7 @@ textarea::placeholder {
     background: var(--bg-white);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    max-width: 600px;
+    max-width: 900px;
     width: 90%;
     max-height: 85vh;
     overflow-y: auto;
