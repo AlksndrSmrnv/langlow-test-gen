@@ -315,6 +315,40 @@ textarea::placeholder {
     line-height: 1.5;
 }
 
+.token-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.token-input-wrapper input {
+    flex: 1;
+    padding-right: 48px;
+}
+
+.btn-toggle-token {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 4px 8px;
+    transition: all 0.2s ease;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-toggle-token:hover {
+    background: var(--bg);
+}
+
+.btn-toggle-token:active {
+    transform: scale(0.95);
+}
+
 /* Modal */
 .modal {
     display: none;
@@ -382,10 +416,18 @@ textarea::placeholder {
     padding: 16px 24px;
     border-top: 1px solid var(--border);
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     position: sticky;
     bottom: 0;
     background: var(--bg-white);
+    gap: 12px;
+}
+
+.modal-footer-left {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .close-btn {
@@ -1125,6 +1167,15 @@ textarea::placeholder {
     .agent-chat-input-wrapper {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .modal-footer-left {
+        flex-direction: column;
     }
 }
 

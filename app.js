@@ -27,6 +27,7 @@ const ICONS = {
 const dom = {};
 const domIds = [
     'settingsModal', 'settingsBtn', 'closeSettingsBtn', 'saveSettingsBtn',
+    'exportSettingsBtn', 'importSettingsBtn', 'importSettingsFile',
     'featureList', 'addFeatureBtn', 'checklistUrl', 'langflowUrl',
     'agentChatLangflowUrl', 'jiraLangflowUrl',
     'apiKey', 'apiFormat', 'mockModeEnabled', 'jiraConnectionUrl', 'jiraConnectionToken',
@@ -216,6 +217,87 @@ const closeModal = () => {
     dom.settingsModal.classList.remove('active');
     document.body.style.overflow = '';
     saveForm();
+};
+
+// ==================== SETTINGS EXPORT/IMPORT ====================
+const exportSettings = () => {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) {
+            alert('Нет настроек для экспорта');
+            return;
+        }
+
+        const data = JSON.parse(saved);
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `langlow-settings-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        showAutosave();
+    } catch (e) {
+        console.error('Export error:', e);
+        alert('Ошибка экспорта настроек');
+    }
+};
+
+const importSettings = () => {
+    dom.importSettingsFile.click();
+};
+
+const handleImportFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        try {
+            const data = JSON.parse(event.target.result);
+
+            // Validate data structure
+            if (typeof data !== 'object') throw new Error('Invalid settings format');
+
+            // Save to localStorage
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+            // Reload form with imported data
+            loadForm();
+
+            alert('Настройки успешно импортированы!');
+            showAutosave();
+        } catch (e) {
+            console.error('Import error:', e);
+            alert('Ошибка импорта настроек: некорректный формат файла');
+        }
+    };
+    reader.readAsText(file);
+
+    // Reset file input
+    e.target.value = '';
+};
+
+// ==================== TOKEN VISIBILITY TOGGLE ====================
+const toggleTokenVisibility = (targetId) => {
+    const input = document.getElementById(targetId);
+    if (!input) return;
+
+    const btn = document.querySelector(`[data-target="${targetId}"]`);
+    if (!btn) return;
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+        btn.title = 'Скрыть';
+    } else {
+        input.type = 'password';
+        btn.textContent = '👁️';
+        btn.title = 'Показать';
+    }
 };
 
 // ==================== XML PARSING (DOMParser) ====================
@@ -838,6 +920,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Settings
         if (t.id === 'settingsBtn') openModal();
         if (t.id === 'closeSettingsBtn' || t.id === 'saveSettingsBtn' || t.id === 'settingsModal') closeModal();
+        if (t.id === 'exportSettingsBtn') exportSettings();
+        if (t.id === 'importSettingsBtn') importSettings();
+
+        // Token visibility toggle
+        if (t.classList.contains('btn-toggle-token')) {
+            const targetId = t.dataset.target;
+            if (targetId) toggleTokenVisibility(targetId);
+        }
 
         // Features
         if (t.id === 'addFeatureBtn' || t.closest('#addFeatureBtn')) addFeature();
@@ -884,6 +974,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Mock Mode indicator toggle
         if (e.target.id === 'mockModeEnabled') {
             toggleMockIndicator(e.target.checked);
+        }
+        // Import settings file
+        if (e.target.id === 'importSettingsFile') {
+            handleImportFile(e);
         }
     });
 
