@@ -41,7 +41,7 @@ const domIds = [
     'loaderSubstatus', 'resultSection', 'testsSection', 'testsContainer',
     'testsCount', 'toggleAllBtn', 'jiraSection', 'selectedCount',
     'selectAllBtn', 'jiraProjectKey', 'jiraFolderName', 'jiraConfigurationElement', 'jiraTestType', 'btnSendJira',
-    'jiraStatus', 'additionalChecksSection', 'additionalChecksContent',
+    'jiraStatus', 'additionalChecksSection', 'additionalChecksContent', 'generateFromChecksBtn',
     'plainTextSection', 'plainTextContent', 'copyPlainTextBtn',
     'errorSection', 'errorContent', 'agentChat', 'agentChatContext',
     'agentChatContextTest', 'agentChatWarning', 'agentChatMessages',
@@ -50,6 +50,7 @@ const domIds = [
 
 // State
 let testsData = [];
+let checksData = []; // Additional checks data
 let saveTimeout = null;
 let statusInterval = null;
 let currentAbortController = null;
@@ -600,13 +601,12 @@ const createCard = (test, idx, isCheck = false) => {
     const headerLeft = document.createElement('div');
     headerLeft.className = 'card-header-left';
 
-    if (!isCheck) {
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'card-checkbox';
-        checkbox.dataset.idx = idx;
-        headerLeft.appendChild(checkbox);
-    }
+    // Add checkbox for both regular tests and additional checks
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = isCheck ? 'check-card-checkbox' : 'card-checkbox';
+    checkbox.dataset.idx = idx;
+    headerLeft.appendChild(checkbox);
 
     const cardId = document.createElement('div');
     cardId.className = isCheck ? 'card-id warning' : 'card-id';
@@ -827,34 +827,65 @@ const copy = async (content, btn) => {
 };
 
 // ==================== RESULTS ====================
-const showResults = data => {
+const showResults = (data, append = false) => {
     dom.errorSection.style.display = 'none';
     dom.plainTextSection.style.display = 'none';
-    dom.testsContainer.innerHTML = '';
-    dom.additionalChecksContent.innerHTML = '';
-    dom.testsSection.style.display = 'none';
-    dom.additionalChecksSection.style.display = 'none';
 
-    testsData = data.tests;
+    if (!append) {
+        // Replace mode: clear everything
+        dom.testsContainer.innerHTML = '';
+        dom.additionalChecksContent.innerHTML = '';
+        dom.testsSection.style.display = 'none';
+        dom.additionalChecksSection.style.display = 'none';
+        testsData = data.tests;
+        checksData = data.checks || [];
+    } else {
+        // Append mode: add to existing tests
+        const startIdx = testsData.length;
+        testsData = testsData.concat(data.tests);
 
-    if (data.tests.length) {
+        // Append new check data if available
+        if (data.checks && data.checks.length) {
+            checksData = checksData.concat(data.checks);
+        }
+    }
+
+    if (testsData.length) {
         dom.testsSection.style.display = 'block';
-        dom.testsCount.textContent = `${data.tests.length} ${plural(data.tests.length, ['тест', 'теста', 'тестов'])}`;
-        data.tests.forEach((t, i) => dom.testsContainer.appendChild(createCard(t, i)));
+        dom.testsCount.textContent = `${testsData.length} ${plural(testsData.length, ['тест', 'теста', 'тестов'])}`;
+
+        if (!append) {
+            // Replace mode: render all tests
+            testsData.forEach((t, i) => dom.testsContainer.appendChild(createCard(t, i)));
+        } else {
+            // Append mode: render only new tests
+            const startIdx = testsData.length - data.tests.length;
+            data.tests.forEach((t, i) => {
+                dom.testsContainer.appendChild(createCard(t, startIdx + i));
+            });
+        }
+
         dom.toggleAllBtn.textContent = ICONS.expand;
         dom.jiraSection.classList.add('active');
         updateSelection();
     }
 
-    if (data.checks.length || data.checksRaw) {
+    if (!append && (data.checks.length || data.checksRaw)) {
         dom.additionalChecksSection.style.display = 'block';
         if (data.checks.length) {
             const grid = document.createElement('div');
             grid.className = 'additional-checks-grid';
             data.checks.forEach((c, i) => grid.appendChild(createCard(c, i, true)));
             dom.additionalChecksContent.appendChild(grid);
+            // Show generate button when checks are available
+            if (dom.generateFromChecksBtn) {
+                dom.generateFromChecksBtn.style.display = 'block';
+            }
         } else {
             dom.additionalChecksContent.innerHTML = md(data.checksRaw);
+            if (dom.generateFromChecksBtn) {
+                dom.generateFromChecksBtn.style.display = 'none';
+            }
         }
     }
 
@@ -977,6 +1008,24 @@ const buildXML = () => {
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<test_generation>\n`;
     xml += features.map(f => `  <feature>${escapeHtml(f)}</feature>`).join('\n') + '\n';
     xml += `  <checklist>${escapeHtml(checklist)}</checklist>\n`;
+    if (confluenceToken) xml += `  <confluence_token>${escapeHtml(confluenceToken)}</confluence_token>\n`;
+    xml += `</test_generation>`;
+
+    return xml;
+};
+
+const buildChecksXML = (selectedChecks) => {
+    const features = Array.from($('.feature-input')).map(i => i.value.trim()).filter(Boolean);
+    const confluenceToken = dom.confluenceToken?.value.trim() || '';
+
+    if (!features.length) throw new Error('Добавьте хотя бы одну страницу с описанием фичи');
+    if (!selectedChecks.length) throw new Error('Выберите хотя бы одну дополнительную проверку');
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<test_generation>\n`;
+    xml += `  <additional_checks>\n`;
+    xml += selectedChecks.map(check => `    <test>${escapeHtml(check)}</test>`).join('\n') + '\n';
+    xml += `  </additional_checks>\n`;
+    xml += features.map(f => `  <feature>${escapeHtml(f)}</feature>`).join('\n') + '\n';
     if (confluenceToken) xml += `  <confluence_token>${escapeHtml(confluenceToken)}</confluence_token>\n`;
     xml += `</test_generation>`;
 
@@ -1111,6 +1160,120 @@ const generate = async () => {
     }
 };
 
+const generateFromChecks = async () => {
+    // Collect selected checks
+    const selectedCheckboxes = Array.from($('.check-card-checkbox:checked'));
+    if (!selectedCheckboxes.length) {
+        alert('Выберите хотя бы одну дополнительную проверку');
+        return;
+    }
+
+    const selectedChecks = selectedCheckboxes.map(cb => {
+        const idx = parseInt(cb.dataset.idx);
+        return checksData[idx]?.content || '';
+    }).filter(Boolean);
+
+    // Abort previous request if exists
+    if (currentAbortController) {
+        currentAbortController.abort();
+    }
+    currentAbortController = new AbortController();
+
+    try {
+        const xml = buildChecksXML(selectedChecks);
+        const settings = getSettings();
+
+        $('.section').forEach(s => s.classList.add('collapsed'));
+        dom.generateBtn.classList.add('hidden');
+        dom.generateBtn.disabled = true;
+        if (dom.generateFromChecksBtn) dom.generateFromChecksBtn.disabled = true;
+        dom.loader.classList.add('active');
+        dom.resultSection.classList.remove('active');
+        resetAgent();
+        startLoading();
+
+        let jsonData;
+
+        // Mock Mode: использовать заглушку вместо реального API
+        if (settings.mockMode && window.mockFetch) {
+            console.log('🎭 Mock Mode: Using mock data for generation from checks');
+            jsonData = await window.mockFetch('generate', { xml, settings });
+        } else {
+            // Реальный API запрос
+            if (!settings.url) throw new Error('Укажите URL Langflow в настройках');
+
+            const res = await fetch(settings.url, {
+                method: 'POST',
+                headers: headers(settings.apiKey),
+                body: JSON.stringify(buildBody(xml, settings.format, sessionId())),
+                signal: currentAbortController.signal
+            });
+
+            if (!res.ok) {
+                let msg = `HTTP ${res.status}: ${res.statusText}\n\n`;
+                if (res.status === 405) msg += `Ошибка 405 - Метод не разрешен.\nПроверьте URL endpoint и формат API.\n\n`;
+                msg += `Ответ сервера:\n${await res.text()}`;
+                throw new Error(msg);
+            }
+
+            const contentType = res.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                const text = await res.text();
+                throw new Error(`Сервер вернул неожиданный формат ответа (${contentType || 'unknown'}).\n\nПроверьте:\n- Правильность URL Langflow\n- Что сервер возвращает JSON, а не HTML страницу\n\nОтвет сервера:\n${text.substring(0, 500)}`);
+            }
+
+            try {
+                jsonData = await res.json();
+            } catch (e) {
+                throw new Error(`Ошибка парсинга JSON: ${e.message}`);
+            }
+        }
+
+        const generated = extractResponse(jsonData);
+        const parsed = parseXML(generated);
+
+        if (parsed.tests.length || parsed.checks.length || parsed.checksRaw) {
+            // Append new tests to existing ones first
+            showResults(parsed, true);
+
+            // Save to history with ALL tests (old + new)
+            const fullData = {
+                tests: testsData,        // All tests after append
+                checks: checksData,      // All checks after append
+                checksRaw: ''
+            };
+            const requestParams = {
+                features: Array.from($('.feature-input')).map(i => i.value.trim()).filter(Boolean),
+                selectedChecks: selectedChecks.length
+            };
+            saveToHistory(fullData, requestParams);
+        } else {
+            showPlainText(generated);
+        }
+
+    } catch (e) {
+        if (e.name === 'AbortError') return; // Ignore aborted requests
+
+        $('.section').forEach(s => s.classList.remove('collapsed'));
+        dom.generateBtn.classList.remove('hidden');
+
+        dom.resultSection.classList.add('active');
+        dom.testsSection.style.display = 'none';
+        dom.additionalChecksSection.style.display = 'none';
+        dom.plainTextSection.style.display = 'none';
+        dom.errorSection.style.display = 'block';
+        dom.errorContent.textContent = `Ошибка: ${e.message}\n\nПроверьте:\n- Корректность URL Langflow\n- Доступность сервиса\n- Правильность API ключа`;
+
+        console.error('Error:', e);
+    } finally {
+        stopLoading();
+        dom.generateBtn.disabled = false;
+        if (dom.generateFromChecksBtn) dom.generateFromChecksBtn.disabled = false;
+        dom.loader.classList.remove('active');
+        currentAbortController = null;
+    }
+};
+
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => {
     // Cache DOM
@@ -1152,6 +1315,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Actions
         if (t.id === 'generateBtn' || t.closest('#generateBtn')) generate();
+        if (t.id === 'generateFromChecksBtn' || t.closest('#generateFromChecksBtn')) generateFromChecks();
         if (t.id === 'toggleAllBtn') toggleAll();
         if (t.id === 'selectAllBtn') selectAll();
         if (t.id === 'btnSendJira') sendJira();
