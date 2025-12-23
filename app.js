@@ -1026,6 +1026,7 @@ const buildChecksXML = (selectedChecks) => {
     xml += selectedChecks.map(check => `    <test>${escapeHtml(check)}</test>`).join('\n') + '\n';
     xml += `  </additional_checks>\n`;
     xml += features.map(f => `  <feature>${escapeHtml(f)}</feature>`).join('\n') + '\n';
+    xml += `  <checklist>http://s.s/test</checklist>\n`;
     if (confluenceToken) xml += `  <confluence_token>${escapeHtml(confluenceToken)}</confluence_token>\n`;
     xml += `</test_generation>`;
 
