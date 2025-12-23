@@ -827,27 +827,50 @@ const copy = async (content, btn) => {
 };
 
 // ==================== RESULTS ====================
-const showResults = data => {
+const showResults = (data, append = false) => {
     dom.errorSection.style.display = 'none';
     dom.plainTextSection.style.display = 'none';
-    dom.testsContainer.innerHTML = '';
-    dom.additionalChecksContent.innerHTML = '';
-    dom.testsSection.style.display = 'none';
-    dom.additionalChecksSection.style.display = 'none';
 
-    testsData = data.tests;
-    checksData = data.checks || []; // Store checks data
+    if (!append) {
+        // Replace mode: clear everything
+        dom.testsContainer.innerHTML = '';
+        dom.additionalChecksContent.innerHTML = '';
+        dom.testsSection.style.display = 'none';
+        dom.additionalChecksSection.style.display = 'none';
+        testsData = data.tests;
+        checksData = data.checks || [];
+    } else {
+        // Append mode: add to existing tests
+        const startIdx = testsData.length;
+        testsData = testsData.concat(data.tests);
 
-    if (data.tests.length) {
+        // Append new check data if available
+        if (data.checks && data.checks.length) {
+            checksData = checksData.concat(data.checks);
+        }
+    }
+
+    if (testsData.length) {
         dom.testsSection.style.display = 'block';
-        dom.testsCount.textContent = `${data.tests.length} ${plural(data.tests.length, ['тест', 'теста', 'тестов'])}`;
-        data.tests.forEach((t, i) => dom.testsContainer.appendChild(createCard(t, i)));
+        dom.testsCount.textContent = `${testsData.length} ${plural(testsData.length, ['тест', 'теста', 'тестов'])}`;
+
+        if (!append) {
+            // Replace mode: render all tests
+            testsData.forEach((t, i) => dom.testsContainer.appendChild(createCard(t, i)));
+        } else {
+            // Append mode: render only new tests
+            const startIdx = testsData.length - data.tests.length;
+            data.tests.forEach((t, i) => {
+                dom.testsContainer.appendChild(createCard(t, startIdx + i));
+            });
+        }
+
         dom.toggleAllBtn.textContent = ICONS.expand;
         dom.jiraSection.classList.add('active');
         updateSelection();
     }
 
-    if (data.checks.length || data.checksRaw) {
+    if (!append && (data.checks.length || data.checksRaw)) {
         dom.additionalChecksSection.style.display = 'block';
         if (data.checks.length) {
             const grid = document.createElement('div');
@@ -1217,7 +1240,8 @@ const generateFromChecks = async () => {
             };
             saveToHistory(parsed, requestParams);
 
-            showResults(parsed);
+            // Append new tests to existing ones
+            showResults(parsed, true);
         } else {
             showPlainText(generated);
         }
