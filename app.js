@@ -109,9 +109,33 @@ const headersXml = key => {
     return h;
 };
 
-const extractResponse = r =>
-    r.outputs?.[0]?.outputs?.[0]?.results?.message?.text ||
-    r.result || r.message || JSON.stringify(r, null, 2);
+const extractResponse = r => {
+    console.log('🔍 Extracting response from:', r);
+
+    // Try different paths to extract the response
+    let extracted =
+        // Standard Langflow response format
+        r.outputs?.[0]?.outputs?.[0]?.results?.message?.text ||
+        // Alternative format with message in outputs
+        r.outputs?.[0]?.message?.text ||
+        // Text directly in outputs
+        r.outputs?.[0]?.text ||
+        // Input value from outputs (sometimes Langflow returns this)
+        r.outputs?.[0]?.inputs?.input_value ||
+        // Response in outputs artifacts
+        r.outputs?.[0]?.artifacts?.message ||
+        r.outputs?.[0]?.artifacts?.text ||
+        // Direct properties
+        r.result ||
+        r.message ||
+        r.text ||
+        r.response ||
+        // Fallback to JSON
+        JSON.stringify(r, null, 2);
+
+    console.log('✅ Extracted response:', extracted?.substring(0, 200) + '...');
+    return extracted;
+};
 
 const scrollToBottom = container => {
     if (container) container.scrollTop = container.scrollHeight;
@@ -1122,8 +1146,11 @@ const generate = async () => {
             }
         }
 
+        console.log('📦 [generate] Raw JSON response:', jsonData);
         const generated = extractResponse(jsonData);
+        console.log('📄 [generate] Extracted text (first 500 chars):', generated.substring(0, 500));
         const parsed = parseXML(generated);
+        console.log('🔧 [generate] Parsed result:', { testsCount: parsed.tests.length, checksCount: parsed.checks.length });
 
         if (parsed.tests.length || parsed.checks.length || parsed.checksRaw) {
             // Save to history
@@ -1229,8 +1256,11 @@ const generateFromChecks = async () => {
             }
         }
 
+        console.log('📦 [generateFromChecks] Raw JSON response:', jsonData);
         const generated = extractResponse(jsonData);
+        console.log('📄 [generateFromChecks] Extracted text (first 500 chars):', generated.substring(0, 500));
         const parsed = parseXML(generated);
+        console.log('🔧 [generateFromChecks] Parsed result:', { testsCount: parsed.tests.length, checksCount: parsed.checks.length });
 
         if (parsed.tests.length || parsed.checks.length || parsed.checksRaw) {
             // Append new tests to existing ones first
