@@ -1212,6 +1212,78 @@ textarea::placeholder {
     }
 }
 
+/* Header Buttons */
+.header-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+/* History Modal */
+.history-list {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.history-empty {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 1em;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-white);
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+}
+
+.history-item:hover {
+    border-color: var(--border-dark);
+    box-shadow: var(--shadow);
+}
+
+.history-item-info {
+    flex: 1;
+}
+
+.history-item-date {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+}
+
+.history-item-stats {
+    font-size: 0.875em;
+    color: var(--text-muted);
+}
+
+.history-item-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.875em;
+}
+
+.btn-danger {
+    color: var(--error);
+    border-color: var(--error-border);
+}
+
+.btn-danger:hover {
+    background: var(--error-bg);
+    border-color: var(--error);
+}
+
 /* Responsive */
 @media (max-width: 900px) {
     .additional-checks-grid {
