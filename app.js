@@ -1233,15 +1233,20 @@ const generateFromChecks = async () => {
         const parsed = parseXML(generated);
 
         if (parsed.tests.length || parsed.checks.length || parsed.checksRaw) {
-            // Save to history
+            // Append new tests to existing ones first
+            showResults(parsed, true);
+
+            // Save to history with ALL tests (old + new)
+            const fullData = {
+                tests: testsData,        // All tests after append
+                checks: checksData,      // All checks after append
+                checksRaw: ''
+            };
             const requestParams = {
                 features: Array.from($('.feature-input')).map(i => i.value.trim()).filter(Boolean),
                 selectedChecks: selectedChecks.length
             };
-            saveToHistory(parsed, requestParams);
-
-            // Append new tests to existing ones
-            showResults(parsed, true);
+            saveToHistory(fullData, requestParams);
         } else {
             showPlainText(generated);
         }
