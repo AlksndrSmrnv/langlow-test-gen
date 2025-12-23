@@ -19,7 +19,10 @@
                 <h1>🧪 Генератор Интеграционных Тестов</h1>
                 <p class="subtitle">Автоматическая генерация тестов на основе требований и чек-листов</p>
             </div>
-            <button class="btn btn-icon" id="settingsBtn" title="Настройки подключения">⚙️</button>
+            <div class="header-buttons">
+                <button class="btn btn-icon" id="historyBtn" title="История генераций">📚</button>
+                <button class="btn btn-icon" id="settingsBtn" title="Настройки подключения">⚙️</button>
+            </div>
         </div>
 
         <div class="main-content">
@@ -145,6 +148,19 @@
                         <input type="file" id="importSettingsFile" accept=".json" style="display: none;">
                     </div>
                     <button class="btn btn-primary" id="saveSettingsBtn">Сохранить настройки</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Modal -->
+        <div class="modal" id="historyModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>📚 История генераций</h2>
+                    <button class="btn btn-icon close-btn" id="closeHistoryBtn">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div id="historyList" class="history-list"></div>
                 </div>
             </div>
         </div>
