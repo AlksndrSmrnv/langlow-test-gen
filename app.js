@@ -43,7 +43,7 @@ const domIds = [
     'selectAllBtn', 'jiraProjectKey', 'jiraFolderName', 'jiraConfigurationElement', 'jiraTestType', 'btnSendJira',
     'jiraStatus', 'additionalChecksSection', 'additionalChecksContent', 'generateFromChecksBtn',
     'plainTextSection', 'plainTextContent', 'copyPlainTextBtn',
-    'errorSection', 'errorContent', 'agentChat', 'agentChatContext',
+    'errorSection', 'errorContent', 'retryGenerateBtn', 'agentChat', 'agentChatContext',
     'agentChatContextTest', 'agentChatWarning', 'agentChatMessages',
     'agentChatLoader', 'agentChatInput', 'agentChatSendBtn', 'autosave'
 ];
@@ -1316,6 +1316,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Actions
         if (t.id === 'generateBtn' || t.closest('#generateBtn')) generate();
+        if (t.id === 'retryGenerateBtn' || t.closest('#retryGenerateBtn')) generate();
         if (t.id === 'generateFromChecksBtn' || t.closest('#generateFromChecksBtn')) generateFromChecks();
         if (t.id === 'toggleAllBtn') toggleAll();
         if (t.id === 'selectAllBtn') selectAll();
