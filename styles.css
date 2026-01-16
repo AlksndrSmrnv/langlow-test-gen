@@ -1284,6 +1284,62 @@ textarea::placeholder {
     border-color: var(--error);
 }
 
+/* Settings Confirm Dialog */
+.settings-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+
+.settings-confirm-dialog {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s ease;
+}
+
+.settings-confirm-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.settings-confirm-header h3 {
+    margin: 0;
+    font-size: 1.125em;
+    font-weight: 600;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings-confirm-body {
+    padding: 24px;
+}
+
+.settings-confirm-body p {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.9375em;
+    line-height: 1.6;
+}
+
+.settings-confirm-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
     .additional-checks-grid {

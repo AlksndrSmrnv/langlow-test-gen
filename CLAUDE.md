@@ -18,10 +18,9 @@ Web application for generating integration tests with Russian language interface
 
 ### File Structure
 
-- **index.html** (326 lines) - HTML structure, settings modal, history modal, agent chat UI
-- **styles.css** (1344 lines) - CSS with custom properties, responsive design, animations
-- **app.js** (1386 lines) - All JavaScript logic, state management, API integration
-- **mock.js** (260 lines) - Mock mode implementation for UI testing without real API calls
+- **index.html** - HTML structure, settings modal, history modal, agent chat UI
+- **styles.css** - CSS with custom properties, responsive design, animations
+- **app.js** - All JavaScript logic, state management, API integration
 
 ### Key Features
 
@@ -59,20 +58,13 @@ Web application for generating integration tests with Russian language interface
 - Delete individual history entries
 - Automatically saves up to 50 most recent generations
 
-#### 6. Mock Mode
-- Testing UI without real API calls to Langflow
-- Toggle in settings modal to enable/disable
-- Visual indicator showing when mock mode is active
-- Provides realistic delays and demo data for all API endpoints
-- Useful for development, demos, and UI testing
-
-#### 7. Settings Management
+#### 6. Settings Management
 - **Export Settings** - Download all settings as JSON file
 - **Import Settings** - Upload and restore settings from JSON file
 - Token visibility toggles for secure password fields
 - Dual JIRA instance support (Jira D and Jira S) with toggle switch
 
-#### 8. Error Recovery
+#### 7. Error Recovery
 - **Retry Button** - Appears when generation fails
 - Allows immediate retry without refreshing page
 - Preserves all form data and settings
@@ -110,12 +102,6 @@ Select checks → buildChecksXML() → XML payload → Langflow API →
 ```
 Generate tests → saveToHistory() → localStorage →
 → History modal → Load generation → showResults() → Restore UI
-```
-
-**Mock Mode Flow:**
-```
-API call → Check mockMode flag → window.mockFetch() →
-→ Simulate delay → Return demo data → Process as normal
 ```
 
 ## Key Functions
@@ -159,13 +145,6 @@ API call → Check mockMode flag → window.mockFetch() →
 - `deleteFromHistory()` - Removes a history item and re-renders list
 - `openHistoryModal()` / `closeHistoryModal()` - History modal controls
 
-### Mock Mode
-- `window.mockFetch(type, data)` - Main mock API function (defined in mock.js)
-- `mockDelay()` - Simulates network latency (500-1500ms)
-- `getMockAgentResponse()` - Generates mock agent chat responses
-- `window.mockModeActive()` - Creates visual indicator element
-- `toggleMockIndicator()` - Shows/hides mock mode indicator
-
 ### Settings Management
 - `exportSettings()` - Downloads settings as JSON file with timestamp
 - `importSettings()` - Triggers file picker for settings import
@@ -194,7 +173,6 @@ API call → Check mockMode flag → window.mockFetch() →
 - **JIRA URL** - Test submission endpoint
 - **API Key** - Optional authentication (supports Bearer and x-api-key headers)
 - **API Format** - Request body format (standard/inputs/message)
-- **Mock Mode** - Enable/disable mock mode for UI testing without real API calls
 
 **JIRA Connection (Dual Instance Support):**
 - **Jira D** - Primary Jira instance credentials (URL + Token)
@@ -335,7 +313,6 @@ Extracts:
 - **Request abortion** - AbortController for canceling in-flight requests
 - **Retry functionality** - Dedicated retry button appears on generation errors
 - **Error section** - Shows error details with suggestions for resolution
-- **Mock mode errors** - Handles missing mock.js gracefully
 - **AbortError handling** - Silently ignores user-canceled requests
 
 ## Technical Implementation Details
@@ -386,49 +363,20 @@ Requires modern browser with:
 - CSS Custom Properties
 - File API (for settings import/export)
 
-## Mock Mode Development
-
-**Purpose:** Test and develop UI features without requiring a live Langflow backend.
-
-**How to Enable:**
-1. Open Settings modal (⚙️ button)
-2. Check "🎭 Режим заглушек (Mock Mode)"
-3. Visual indicator appears in top-right corner
-
-**Mock Data Provided:**
-- **Test Generation** - Returns 3 pre-built test cases + 3 additional checks
-- **Agent Chat** - Returns modified test with user request appended
-- **JIRA Export** - Returns success status
-
-**Mock Behavior:**
-- Simulates realistic network delays (800-1500ms)
-- Returns data in Langflow API response format
-- Logs all mock operations to console with 🎭 prefix
-- Fully compatible with all UI features
-
-**Use Cases:**
-- UI development without backend setup
-- Demonstrations and presentations
-- Testing error handling paths
-- Rapid prototyping of new features
-
 ## Development Guidelines
 
 **Code Organization:**
 - All JavaScript in `app.js` (no build step required)
-- Mock functionality isolated in `mock.js`
 - CSS uses custom properties for consistent theming
 - Event delegation for all dynamic UI interactions
 
 **Adding New Features:**
 1. Update relevant functions in `app.js`
-2. Add mock support in `mock.js` if API-related
-3. Update localStorage schema in `saveForm()`/`loadForm()` if storing new data
-4. Add DOM element to cache if frequently accessed
-5. Update CLAUDE.md with feature documentation
+2. Update localStorage schema in `saveForm()`/`loadForm()` if storing new data
+3. Add DOM element to cache if frequently accessed
+4. Update CLAUDE.md with feature documentation
 
 **Testing Checklist:**
-- Test with Mock Mode enabled
 - Test with real Langflow endpoints
 - Verify localStorage persistence
 - Check mobile responsive behavior
@@ -437,8 +385,6 @@ Requires modern browser with:
 
 **Common Patterns:**
 - Use `getSettings()` to access all configuration
-- Check `settings.mockMode` before API calls
-- Use `window.mockFetch()` for mock responses
 - Always use `AbortController` for cancelable requests
 - Debounce user input with `setTimeout` for performance
 

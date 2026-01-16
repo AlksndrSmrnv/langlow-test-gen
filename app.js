@@ -32,7 +32,7 @@ const domIds = [
     'historyModal', 'historyBtn', 'closeHistoryBtn', 'historyList',
     'featureList', 'addFeatureBtn', 'checklistUrl', 'langflowUrl',
     'agentChatLangflowUrl', 'jiraLangflowUrl',
-    'apiKey', 'apiFormat', 'mockModeEnabled',
+    'apiKey', 'apiFormat',
     'jiraConnectionUrl', 'jiraConnectionToken',
     'jiraConnectionUrlD', 'jiraConnectionTokenD',
     'jiraConnectionUrlS', 'jiraConnectionTokenS',
@@ -55,6 +55,8 @@ let saveTimeout = null;
 let statusInterval = null;
 let currentAbortController = null;
 let agentState = { selectedIndex: null, messages: [], processing: false };
+let settingsChanged = false;
+let originalSettings = null;
 
 // ==================== UTILS ====================
 const $ = sel => document.querySelectorAll(sel);
@@ -86,8 +88,7 @@ const getSettings = () => ({
     agentUrl: dom.agentChatLangflowUrl?.value.trim() || '',
     jiraUrl: dom.jiraLangflowUrl?.value.trim() || '',
     apiKey: dom.apiKey?.value.trim() || '',
-    format: dom.apiFormat?.value || 'standard',
-    mockMode: dom.mockModeEnabled?.checked || false
+    format: dom.apiFormat?.value || 'standard'
 });
 
 const buildBody = (data, format, sid) => {
@@ -134,7 +135,6 @@ const saveForm = () => {
             jiraLangflowUrl: dom.jiraLangflowUrl.value.trim(),
             apiKey: dom.apiKey.value.trim(),
             apiFormat: dom.apiFormat.value,
-            mockModeEnabled: dom.mockModeEnabled?.checked || false,
             jiraConnectionUrlD: dom.jiraConnectionUrlD?.value.trim() || '',
             jiraConnectionTokenD: dom.jiraConnectionTokenD?.value.trim() || '',
             jiraConnectionUrlS: dom.jiraConnectionUrlS?.value.trim() || '',
@@ -194,12 +194,6 @@ const loadForm = () => {
          'jiraConfigurationElement', 'jiraTestType']
             .forEach(f => { if (data[f] && dom[f]) dom[f].value = data[f]; });
 
-        // Restore checkbox state for mockModeEnabled
-        if (data.mockModeEnabled !== undefined && dom.mockModeEnabled) {
-            dom.mockModeEnabled.checked = data.mockModeEnabled;
-            toggleMockIndicator(data.mockModeEnabled);
-        }
-
         // Restore Jira type selection
         if (data.jiraType !== undefined && dom.jiraTypeToggle) {
             dom.jiraTypeToggle.checked = data.jiraType === 'S';
@@ -210,20 +204,6 @@ const loadForm = () => {
         updateJiraConnection();
     } catch (e) {
         console.error('Load error:', e);
-    }
-};
-
-// Mock Mode indicator
-const toggleMockIndicator = (show) => {
-    let indicator = document.getElementById('mockModeIndicator');
-
-    if (show && !indicator) {
-        // Create indicator if it doesn't exist
-        indicator = window.mockModeActive ? window.mockModeActive() : null;
-        if (indicator) document.body.appendChild(indicator);
-    } else if (!show && indicator) {
-        // Remove indicator if it exists
-        indicator.remove();
     }
 };
 
@@ -409,15 +389,121 @@ const closeHistoryModal = () => {
 };
 
 // ==================== MODAL ====================
+const captureCurrentSettings = () => {
+    return {
+        langflowUrl: dom.langflowUrl.value.trim(),
+        agentChatLangflowUrl: dom.agentChatLangflowUrl.value.trim(),
+        jiraLangflowUrl: dom.jiraLangflowUrl.value.trim(),
+        apiKey: dom.apiKey.value.trim(),
+        apiFormat: dom.apiFormat.value,
+        jiraConnectionUrlD: dom.jiraConnectionUrlD?.value.trim() || '',
+        jiraConnectionTokenD: dom.jiraConnectionTokenD?.value.trim() || '',
+        jiraConnectionUrlS: dom.jiraConnectionUrlS?.value.trim() || '',
+        jiraConnectionTokenS: dom.jiraConnectionTokenS?.value.trim() || '',
+        jiraType: dom.jiraTypeToggle?.checked ? 'S' : 'D',
+        confluenceToken: dom.confluenceToken?.value.trim() || ''
+    };
+};
+
 const openModal = () => {
+    originalSettings = captureCurrentSettings();
+    settingsChanged = false;
     dom.settingsModal.classList.add('active');
     document.body.style.overflow = 'hidden';
 };
 
-const closeModal = () => {
+const closeModalWithoutSave = () => {
+    // Restore original settings
+    if (originalSettings) {
+        dom.langflowUrl.value = originalSettings.langflowUrl;
+        dom.agentChatLangflowUrl.value = originalSettings.agentChatLangflowUrl;
+        dom.jiraLangflowUrl.value = originalSettings.jiraLangflowUrl;
+        dom.apiKey.value = originalSettings.apiKey;
+        dom.apiFormat.value = originalSettings.apiFormat;
+        if (dom.jiraConnectionUrlD) dom.jiraConnectionUrlD.value = originalSettings.jiraConnectionUrlD;
+        if (dom.jiraConnectionTokenD) dom.jiraConnectionTokenD.value = originalSettings.jiraConnectionTokenD;
+        if (dom.jiraConnectionUrlS) dom.jiraConnectionUrlS.value = originalSettings.jiraConnectionUrlS;
+        if (dom.jiraConnectionTokenS) dom.jiraConnectionTokenS.value = originalSettings.jiraConnectionTokenS;
+        if (dom.jiraTypeToggle) {
+            dom.jiraTypeToggle.checked = originalSettings.jiraType === 'S';
+            updateJiraToggleLabels();
+        }
+        if (dom.confluenceToken) dom.confluenceToken.value = originalSettings.confluenceToken;
+        updateJiraConnection();
+    }
     dom.settingsModal.classList.remove('active');
     document.body.style.overflow = '';
-    saveForm();
+    settingsChanged = false;
+    originalSettings = null;
+};
+
+const closeModal = () => {
+    if (settingsChanged) {
+        showSettingsConfirmDialog();
+    } else {
+        closeModalWithoutSave();
+    }
+};
+
+const saveSettingsAndClose = () => {
+    // Save all settings to the main form data
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const data = saved ? JSON.parse(saved) : {};
+
+    // Update only settings-related fields
+    data.langflowUrl = dom.langflowUrl.value.trim();
+    data.agentChatLangflowUrl = dom.agentChatLangflowUrl.value.trim();
+    data.jiraLangflowUrl = dom.jiraLangflowUrl.value.trim();
+    data.apiKey = dom.apiKey.value.trim();
+    data.apiFormat = dom.apiFormat.value;
+    data.jiraConnectionUrlD = dom.jiraConnectionUrlD?.value.trim() || '';
+    data.jiraConnectionTokenD = dom.jiraConnectionTokenD?.value.trim() || '';
+    data.jiraConnectionUrlS = dom.jiraConnectionUrlS?.value.trim() || '';
+    data.jiraConnectionTokenS = dom.jiraConnectionTokenS?.value.trim() || '';
+    data.jiraType = dom.jiraTypeToggle?.checked ? 'S' : 'D';
+    data.confluenceToken = dom.confluenceToken?.value.trim() || '';
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+    dom.settingsModal.classList.remove('active');
+    document.body.style.overflow = '';
+    settingsChanged = false;
+    originalSettings = null;
+    showAutosave();
+};
+
+const showSettingsConfirmDialog = () => {
+    const overlay = document.createElement('div');
+    overlay.className = 'settings-confirm-overlay';
+    overlay.innerHTML = `
+        <div class="settings-confirm-dialog">
+            <div class="settings-confirm-header">
+                <h3>⚠️ Несохраненные изменения</h3>
+            </div>
+            <div class="settings-confirm-body">
+                <p>Вы изменили настройки. Хотите сохранить изменения?</p>
+            </div>
+            <div class="settings-confirm-footer">
+                <button class="btn btn-outline" id="confirmDontSave">Не сохранять</button>
+                <button class="btn btn-primary" id="confirmSave">Сохранить настройки</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const handleSave = () => {
+        saveSettingsAndClose();
+        overlay.remove();
+    };
+
+    const handleDontSave = () => {
+        closeModalWithoutSave();
+        overlay.remove();
+    };
+
+    overlay.querySelector('#confirmSave').addEventListener('click', handleSave);
+    overlay.querySelector('#confirmDontSave').addEventListener('click', handleDontSave);
 };
 
 // ==================== SETTINGS EXPORT/IMPORT ====================
@@ -756,32 +842,19 @@ const sendAgentMsg = async () => {
     agentState.processing = true;
 
     try {
-        let response;
+        if (!settings.agentUrl) throw new Error('Укажите URL Langflow для чата с агентом в настройках');
 
-        // Mock Mode: использовать заглушку вместо реального API
-        if (settings.mockMode && window.mockFetch) {
-            console.log('🎭 Mock Mode: Using mock data for agent chat');
-            const mockData = await window.mockFetch('agent', {
-                originalTest: test.content,
-                userMessage: msg
-            });
-            response = extractResponse(mockData);
-        } else {
-            // Реальный API запрос
-            if (!settings.agentUrl) throw new Error('Укажите URL Langflow для чата с агентом в настройках');
+        const prompt = `Текущий тест:\n\n${test.content}\n\n---\n\nЗапрос на изменение: ${msg}\n\nВерни обновленную версию теста целиком в markdown формате. Не добавляй никаких дополнительных комментариев, только сам тест.`;
 
-            const prompt = `Текущий тест:\n\n${test.content}\n\n---\n\nЗапрос на изменение: ${msg}\n\nВерни обновленную версию теста целиком в markdown формате. Не добавляй никаких дополнительных комментариев, только сам тест.`;
+        const res = await fetch(settings.agentUrl, {
+            method: 'POST',
+            headers: headers(settings.apiKey),
+            body: JSON.stringify(buildBody(prompt, settings.format, sessionId()))
+        });
 
-            const res = await fetch(settings.agentUrl, {
-                method: 'POST',
-                headers: headers(settings.apiKey),
-                body: JSON.stringify(buildBody(prompt, settings.format, sessionId()))
-            });
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
 
-            if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-
-            response = extractResponse(await res.json());
-        }
+        const response = extractResponse(await res.json());
 
         testsData[agentState.selectedIndex].content = response;
         updateCard(agentState.selectedIndex, response);
@@ -940,28 +1013,16 @@ const sendJira = async () => {
                 jiraTestType
             );
 
-            // Mock Mode: использовать заглушку вместо реального API
-            if (settings.mockMode && window.mockFetch) {
-                console.log('🎭 Mock Mode: Using mock data for JIRA export');
-                await window.mockFetch('jira', { xmlData });
-                return {
-                    ok: true,
-                    name: test.id,
-                    msg: 'Успешно отправлено (Mock Mode)'
-                };
-            } else {
-                // Реальный API запрос
-                const res = await fetch(settings.jiraUrl, {
-                    method: 'POST',
-                    headers: headers(settings.apiKey),
-                    body: JSON.stringify(buildBody(xmlData, settings.format, sessionId()))
-                });
-                return {
-                    ok: res.ok,
-                    name: test.id,
-                    msg: res.ok ? 'Успешно отправлено' : `Ошибка ${res.status}: ${await res.text()}`
-                };
-            }
+            const res = await fetch(settings.jiraUrl, {
+                method: 'POST',
+                headers: headers(settings.apiKey),
+                body: JSON.stringify(buildBody(xmlData, settings.format, sessionId()))
+            });
+            return {
+                ok: res.ok,
+                name: test.id,
+                msg: res.ok ? 'Успешно отправлено' : `Ошибка ${res.status}: ${await res.text()}`
+            };
         } catch (e) {
             return { ok: false, name: test.id, msg: e.message };
         }
@@ -1086,41 +1147,33 @@ const generate = async () => {
         resetAgent();
         startLoading();
 
+        if (!settings.url) throw new Error('Укажите URL Langflow в настройках');
+
+        const res = await fetch(settings.url, {
+            method: 'POST',
+            headers: headers(settings.apiKey),
+            body: JSON.stringify(buildBody(xml, settings.format, sessionId())),
+            signal: currentAbortController.signal
+        });
+
+        if (!res.ok) {
+            let msg = `HTTP ${res.status}: ${res.statusText}\n\n`;
+            if (res.status === 405) msg += `Ошибка 405 - Метод не разрешен.\nПроверьте URL endpoint и формат API.\n\n`;
+            msg += `Ответ сервера:\n${await res.text()}`;
+            throw new Error(msg);
+        }
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            const text = await res.text();
+            throw new Error(`Сервер вернул неожиданный формат ответа (${contentType || 'unknown'}).\n\nПроверьте:\n- Правильность URL Langflow\n- Что сервер возвращает JSON, а не HTML страницу\n\nОтвет сервера:\n${text.substring(0, 500)}`);
+        }
+
         let jsonData;
-
-        // Mock Mode: использовать заглушку вместо реального API
-        if (settings.mockMode && window.mockFetch) {
-            console.log('🎭 Mock Mode: Using mock data for generation');
-            jsonData = await window.mockFetch('generate', { xml, settings });
-        } else {
-            // Реальный API запрос
-            if (!settings.url) throw new Error('Укажите URL Langflow в настройках');
-
-            const res = await fetch(settings.url, {
-                method: 'POST',
-                headers: headers(settings.apiKey),
-                body: JSON.stringify(buildBody(xml, settings.format, sessionId())),
-                signal: currentAbortController.signal
-            });
-
-            if (!res.ok) {
-                let msg = `HTTP ${res.status}: ${res.statusText}\n\n`;
-                if (res.status === 405) msg += `Ошибка 405 - Метод не разрешен.\nПроверьте URL endpoint и формат API.\n\n`;
-                msg += `Ответ сервера:\n${await res.text()}`;
-                throw new Error(msg);
-            }
-
-            const contentType = res.headers.get('content-type') || '';
-            if (!contentType.includes('application/json')) {
-                const text = await res.text();
-                throw new Error(`Сервер вернул неожиданный формат ответа (${contentType || 'unknown'}).\n\nПроверьте:\n- Правильность URL Langflow\n- Что сервер возвращает JSON, а не HTML страницу\n\nОтвет сервера:\n${text.substring(0, 500)}`);
-            }
-
-            try {
-                jsonData = await res.json();
-            } catch (e) {
-                throw new Error(`Ошибка парсинга JSON: ${e.message}`);
-            }
+        try {
+            jsonData = await res.json();
+        } catch (e) {
+            throw new Error(`Ошибка парсинга JSON: ${e.message}`);
         }
 
         const generated = extractResponse(jsonData);
@@ -1193,41 +1246,33 @@ const generateFromChecks = async () => {
         resetAgent();
         startLoading();
 
+        if (!settings.url) throw new Error('Укажите URL Langflow в настройках');
+
+        const res = await fetch(settings.url, {
+            method: 'POST',
+            headers: headers(settings.apiKey),
+            body: JSON.stringify(buildBody(xml, settings.format, sessionId())),
+            signal: currentAbortController.signal
+        });
+
+        if (!res.ok) {
+            let msg = `HTTP ${res.status}: ${res.statusText}\n\n`;
+            if (res.status === 405) msg += `Ошибка 405 - Метод не разрешен.\nПроверьте URL endpoint и формат API.\n\n`;
+            msg += `Ответ сервера:\n${await res.text()}`;
+            throw new Error(msg);
+        }
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            const text = await res.text();
+            throw new Error(`Сервер вернул неожиданный формат ответа (${contentType || 'unknown'}).\n\nПроверьте:\n- Правильность URL Langflow\n- Что сервер возвращает JSON, а не HTML страницу\n\nОтвет сервера:\n${text.substring(0, 500)}`);
+        }
+
         let jsonData;
-
-        // Mock Mode: использовать заглушку вместо реального API
-        if (settings.mockMode && window.mockFetch) {
-            console.log('🎭 Mock Mode: Using mock data for generation from checks');
-            jsonData = await window.mockFetch('generate', { xml, settings });
-        } else {
-            // Реальный API запрос
-            if (!settings.url) throw new Error('Укажите URL Langflow в настройках');
-
-            const res = await fetch(settings.url, {
-                method: 'POST',
-                headers: headers(settings.apiKey),
-                body: JSON.stringify(buildBody(xml, settings.format, sessionId())),
-                signal: currentAbortController.signal
-            });
-
-            if (!res.ok) {
-                let msg = `HTTP ${res.status}: ${res.statusText}\n\n`;
-                if (res.status === 405) msg += `Ошибка 405 - Метод не разрешен.\nПроверьте URL endpoint и формат API.\n\n`;
-                msg += `Ответ сервера:\n${await res.text()}`;
-                throw new Error(msg);
-            }
-
-            const contentType = res.headers.get('content-type') || '';
-            if (!contentType.includes('application/json')) {
-                const text = await res.text();
-                throw new Error(`Сервер вернул неожиданный формат ответа (${contentType || 'unknown'}).\n\nПроверьте:\n- Правильность URL Langflow\n- Что сервер возвращает JSON, а не HTML страницу\n\nОтвет сервера:\n${text.substring(0, 500)}`);
-            }
-
-            try {
-                jsonData = await res.json();
-            } catch (e) {
-                throw new Error(`Ошибка парсинга JSON: ${e.message}`);
-            }
+        try {
+            jsonData = await res.json();
+        } catch (e) {
+            throw new Error(`Ошибка парсинга JSON: ${e.message}`);
         }
 
         const generated = extractResponse(jsonData);
@@ -1290,7 +1335,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Settings
         if (t.id === 'settingsBtn') openModal();
-        if (t.id === 'closeSettingsBtn' || t.id === 'saveSettingsBtn' || t.id === 'settingsModal') closeModal();
+        if (t.id === 'closeSettingsBtn') closeModalWithoutSave();
+        if (t.id === 'saveSettingsBtn') saveSettingsAndClose();
+        if (t.id === 'settingsModal' && t === e.target) closeModal(); // Click on backdrop
         if (t.id === 'exportSettingsBtn') exportSettings();
         if (t.id === 'importSettingsBtn') importSettings();
 
@@ -1354,10 +1401,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.closest('.card').classList.toggle('selected', e.target.checked);
             updateSelection();
         }
-        // Mock Mode indicator toggle
-        if (e.target.id === 'mockModeEnabled') {
-            toggleMockIndicator(e.target.checked);
-        }
         // Import settings file
         if (e.target.id === 'importSettingsFile') {
             handleImportFile(e);
@@ -1369,14 +1412,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Input autosave
+    // Input autosave (only for non-settings inputs)
     document.addEventListener('input', e => {
-        if (e.target.matches('input, select, textarea') && e.target.closest('.container')) saveForm();
+        if (e.target.matches('input, select, textarea')) {
+            // Check if input is inside settings modal
+            if (e.target.closest('#settingsModal')) {
+                settingsChanged = true;
+            } else if (e.target.closest('.container')) {
+                // Auto-save only for main form inputs
+                saveForm();
+            }
+        }
     });
 
     // Keyboard
     document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && dom.settingsModal.classList.contains('active')) closeModal();
+        if (e.key === 'Escape') {
+            // Check for confirm dialog first
+            const confirmDialog = document.querySelector('.settings-confirm-overlay');
+            if (confirmDialog) {
+                confirmDialog.remove();
+                return;
+            }
+            // Then check for settings modal
+            if (dom.settingsModal.classList.contains('active')) {
+                closeModal();
+            }
+        }
     });
 
     // Chat input
