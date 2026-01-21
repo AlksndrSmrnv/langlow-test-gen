@@ -931,11 +931,9 @@ const showResults = (data, append = false) => {
             // Replace mode: render all tests
             testsData.forEach((t, i) => dom.testsContainer.appendChild(createCard(t, i)));
         } else {
-            // Append mode: render only new tests
-            const startIdx = testsData.length - data.tests.length;
-            data.tests.forEach((t, i) => {
-                dom.testsContainer.appendChild(createCard(t, startIdx + i));
-            });
+            // Append mode: clear and re-render all tests to avoid duplicates
+            dom.testsContainer.innerHTML = '';
+            testsData.forEach((t, i) => dom.testsContainer.appendChild(createCard(t, i)));
         }
 
         dom.toggleAllBtn.textContent = ICONS.expand;
