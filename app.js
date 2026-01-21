@@ -57,6 +57,8 @@ let currentAbortController = null;
 let agentState = { selectedIndex: null, messages: [], processing: false };
 let settingsChanged = false;
 let originalSettings = null;
+let isGenerating = false; // Защита от повторных кликов на генерацию
+let isSendingJira = false; // Защита от повторных кликов на отправку в JIRA
 
 // ==================== UTILS ====================
 const $ = sel => document.querySelectorAll(sel);
@@ -998,6 +1000,9 @@ const showPlainText = text => {
 
 // ==================== JIRA (Parallel requests) ====================
 const sendJira = async () => {
+    // Защита от повторных кликов
+    if (isSendingJira) return;
+
     const projectKey = dom.jiraProjectKey.value.trim();
     const folderName = dom.jiraFolderName.value.trim();
     const settings = getSettings();
@@ -1009,73 +1014,78 @@ const sendJira = async () => {
     const selected = Array.from($('.card-checkbox:checked')).map(cb => testsData[parseInt(cb.dataset.idx)]);
     if (!selected.length) return alert('Выберите хотя бы один тест для отправки');
 
+    isSendingJira = true;
     dom.btnSendJira.disabled = true;
     dom.btnSendJira.textContent = '⏳ Отправка...';
     dom.jiraStatus.innerHTML = '';
     dom.jiraStatus.className = 'jira-status';
 
-    // Get Jira connection settings
-    const jiraConnectionUrl = dom.jiraConnectionUrl?.value.trim() || '';
-    const jiraConnectionToken = dom.jiraConnectionToken?.value.trim() || '';
-    const jiraConfigurationElement = dom.jiraConfigurationElement?.value.trim() || '';
-    const jiraTestType = dom.jiraTestType?.value.trim() || '';
-
-    // Send all requests in parallel
-    const results = await Promise.all(selected.map(async test => {
-        try {
-            const xmlData = buildJiraXML(
-                projectKey,
-                folderName,
-                test.id,
-                test.content,
-                jiraConnectionUrl,
-                jiraConnectionToken,
-                jiraConfigurationElement,
-                jiraTestType
-            );
-
-            const res = await fetch(settings.jiraUrl, {
-                method: 'POST',
-                headers: headers(settings.apiKey),
-                body: JSON.stringify(buildBody(xmlData, settings.format, sessionId()))
-            });
-            return {
-                ok: res.ok,
-                name: test.id,
-                msg: res.ok ? 'Успешно отправлено' : `Ошибка ${res.status}: ${await res.text()}`
-            };
-        } catch (e) {
-            return { ok: false, name: test.id, msg: e.message };
-        }
-    }));
-
-    const ok = results.filter(r => r.ok).length;
-    const err = results.filter(r => !r.ok).length;
-
-    dom.jiraStatus.className = err ? 'jira-status error' : 'jira-status success';
-
     const jiraType = dom.jiraTypeToggle?.checked ? 'S' : 'D';
-    const statusHeader = document.createElement('div');
-    statusHeader.style.cssText = 'font-size: 1.1em; margin-bottom: 10px;';
-    statusHeader.textContent = err
-        ? `⚠️ Отправлено: ${ok}, Ошибок: ${err}`
-        : `✓ Все тесты успешно отправлены в Jira ${jiraType}!`;
-    dom.jiraStatus.appendChild(statusHeader);
 
-    results.forEach(r => {
-        const item = document.createElement('div');
-        item.className = 'jira-status-item';
+    try {
+        // Get Jira connection settings
+        const jiraConnectionUrl = dom.jiraConnectionUrl?.value.trim() || '';
+        const jiraConnectionToken = dom.jiraConnectionToken?.value.trim() || '';
+        const jiraConfigurationElement = dom.jiraConfigurationElement?.value.trim() || '';
+        const jiraTestType = dom.jiraTestType?.value.trim() || '';
 
-        const strong = document.createElement('strong');
-        strong.textContent = `${r.name}: `;
+        // Send all requests in parallel
+        const results = await Promise.all(selected.map(async test => {
+            try {
+                const xmlData = buildJiraXML(
+                    projectKey,
+                    folderName,
+                    test.id,
+                    test.content,
+                    jiraConnectionUrl,
+                    jiraConnectionToken,
+                    jiraConfigurationElement,
+                    jiraTestType
+                );
 
-        item.appendChild(strong);
-        item.appendChild(document.createTextNode(`${r.ok ? '✓' : '✕'} ${r.msg}`));
-        dom.jiraStatus.appendChild(item);
-    });
+                const res = await fetch(settings.jiraUrl, {
+                    method: 'POST',
+                    headers: headers(settings.apiKey),
+                    body: JSON.stringify(buildBody(xmlData, settings.format, sessionId()))
+                });
+                return {
+                    ok: res.ok,
+                    name: test.id,
+                    msg: res.ok ? 'Успешно отправлено' : `Ошибка ${res.status}: ${await res.text()}`
+                };
+            } catch (e) {
+                return { ok: false, name: test.id, msg: e.message };
+            }
+        }));
 
-    dom.btnSendJira.disabled = false;
-    dom.btnSendJira.textContent = `📤 Отправить выбранные тесты в Jira ${jiraType}`;
+        const ok = results.filter(r => r.ok).length;
+        const err = results.filter(r => !r.ok).length;
+
+        dom.jiraStatus.className = err ? 'jira-status error' : 'jira-status success';
+
+        const statusHeader = document.createElement('div');
+        statusHeader.style.cssText = 'font-size: 1.1em; margin-bottom: 10px;';
+        statusHeader.textContent = err
+            ? `⚠️ Отправлено: ${ok}, Ошибок: ${err}`
+            : `✓ Все тесты успешно отправлены в Jira ${jiraType}!`;
+        dom.jiraStatus.appendChild(statusHeader);
+
+        results.forEach(r => {
+            const item = document.createElement('div');
+            item.className = 'jira-status-item';
+
+            const strong = document.createElement('strong');
+            strong.textContent = `${r.name}: `;
+
+            item.appendChild(strong);
+            item.appendChild(document.createTextNode(`${r.ok ? '✓' : '✕'} ${r.msg}`));
+            dom.jiraStatus.appendChild(item);
+        });
+    } finally {
+        dom.btnSendJira.disabled = false;
+        dom.btnSendJira.textContent = `📤 Отправить выбранные тесты в Jira ${jiraType}`;
+        isSendingJira = false;
+    }
 };
 
 // ==================== GENERATE ====================
@@ -1152,6 +1162,10 @@ const stopLoading = () => {
 };
 
 const generate = async () => {
+    // Защита от повторных кликов
+    if (isGenerating) return;
+    isGenerating = true;
+
     // Abort previous request if exists
     if (currentAbortController) {
         currentAbortController.abort();
@@ -1165,6 +1179,7 @@ const generate = async () => {
         $('.section').forEach(s => s.classList.add('collapsed'));
         dom.generateBtn.classList.add('hidden');
         dom.generateBtn.disabled = true;
+        if (dom.generateFromChecksBtn) dom.generateFromChecksBtn.disabled = true;
         dom.loader.classList.add('active');
         dom.resultSection.classList.remove('active');
         resetAgent();
@@ -1232,18 +1247,25 @@ const generate = async () => {
     } finally {
         stopLoading();
         dom.generateBtn.disabled = false;
+        if (dom.generateFromChecksBtn) dom.generateFromChecksBtn.disabled = false;
         dom.loader.classList.remove('active');
         currentAbortController = null;
+        isGenerating = false;
     }
 };
 
 const generateFromChecks = async () => {
+    // Защита от повторных кликов
+    if (isGenerating) return;
+
     // Collect selected checks
     const selectedCheckboxes = Array.from($('.check-card-checkbox:checked'));
     if (!selectedCheckboxes.length) {
         alert('Выберите хотя бы одну дополнительную проверку');
         return;
     }
+
+    isGenerating = true;
 
     const selectedChecks = selectedCheckboxes.map(cb => {
         const idx = parseInt(cb.dataset.idx);
@@ -1340,6 +1362,7 @@ const generateFromChecks = async () => {
         if (dom.generateFromChecksBtn) dom.generateFromChecksBtn.disabled = false;
         dom.loader.classList.remove('active');
         currentAbortController = null;
+        isGenerating = false;
     }
 };
 
