@@ -241,7 +241,7 @@ const updateJiraConnection = () => {
 
     // Update button text
     if (dom.btnSendJira) {
-        dom.btnSendJira.textContent = `📤 Отправить выбранные тесты в Jira`;
+        dom.btnSendJira.textContent = `📤 Отправить выбранные тесты в Jira ${jiraType}`;
     }
 
     // Update toggle labels
@@ -914,7 +914,6 @@ const showResults = (data, append = false) => {
         checksData = data.checks || [];
     } else {
         // Append mode: add to existing tests
-        const startIdx = testsData.length;
         testsData = testsData.concat(data.tests);
 
         // Append new check data if available
@@ -941,21 +940,45 @@ const showResults = (data, append = false) => {
         updateSelection();
     }
 
-    if (!append && (data.checks.length || data.checksRaw)) {
-        dom.additionalChecksSection.style.display = 'block';
-        if (data.checks.length) {
-            const grid = document.createElement('div');
+    // Handle additional checks (both old and new)
+    if (append) {
+        // In append mode: keep checks visible if any exist
+        if (checksData.length) {
+            dom.additionalChecksSection.style.display = 'block';
+            const grid = dom.additionalChecksContent.querySelector('.additional-checks-grid') || document.createElement('div');
             grid.className = 'additional-checks-grid';
-            data.checks.forEach((c, i) => grid.appendChild(createCard(c, i, true)));
-            dom.additionalChecksContent.appendChild(grid);
-            // Show generate button when checks are available
+            grid.innerHTML = '';
+
+            // Re-render all checks with correct indices
+            checksData.forEach((c, i) => grid.appendChild(createCard(c, i, true)));
+
+            if (!dom.additionalChecksContent.querySelector('.additional-checks-grid')) {
+                dom.additionalChecksContent.innerHTML = '';
+                dom.additionalChecksContent.appendChild(grid);
+            }
+
             if (dom.generateFromChecksBtn) {
                 dom.generateFromChecksBtn.style.display = 'block';
             }
-        } else {
-            dom.additionalChecksContent.innerHTML = md(data.checksRaw);
-            if (dom.generateFromChecksBtn) {
-                dom.generateFromChecksBtn.style.display = 'none';
+        }
+    } else {
+        // Replace mode: render new checks only
+        if (data.checks.length || data.checksRaw) {
+            dom.additionalChecksSection.style.display = 'block';
+            if (data.checks.length) {
+                const grid = document.createElement('div');
+                grid.className = 'additional-checks-grid';
+                data.checks.forEach((c, i) => grid.appendChild(createCard(c, i, true)));
+                dom.additionalChecksContent.appendChild(grid);
+                // Show generate button when checks are available
+                if (dom.generateFromChecksBtn) {
+                    dom.generateFromChecksBtn.style.display = 'block';
+                }
+            } else {
+                dom.additionalChecksContent.innerHTML = md(data.checksRaw);
+                if (dom.generateFromChecksBtn) {
+                    dom.generateFromChecksBtn.style.display = 'none';
+                }
             }
         }
     }
@@ -1052,7 +1075,7 @@ const sendJira = async () => {
     });
 
     dom.btnSendJira.disabled = false;
-    dom.btnSendJira.textContent = '📤 Отправить выбранные тесты в Jira D';
+    dom.btnSendJira.textContent = `📤 Отправить выбранные тесты в Jira ${jiraType}`;
 };
 
 // ==================== GENERATE ====================
