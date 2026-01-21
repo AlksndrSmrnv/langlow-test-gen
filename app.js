@@ -1077,17 +1077,19 @@ const buildXML = () => {
 
 const buildChecksXML = (selectedChecks) => {
     const features = Array.from($('.feature-input')).map(i => i.value.trim()).filter(Boolean);
+    const checklist = dom.checklistUrl.value.trim();
     const confluenceToken = dom.confluenceToken?.value.trim() || '';
 
     if (!features.length) throw new Error('Добавьте хотя бы одну страницу с описанием фичи');
     if (!selectedChecks.length) throw new Error('Выберите хотя бы одну дополнительную проверку');
+    if (!checklist) throw new Error('Укажите ссылку на чек-лист');
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<test_generation>\n`;
     xml += `  <additional_checks>\n`;
     xml += selectedChecks.map(check => `    <test>${escapeHtml(check)}</test>`).join('\n') + '\n';
     xml += `  </additional_checks>\n`;
     xml += features.map(f => `  <feature>${escapeHtml(f)}</feature>`).join('\n') + '\n';
-    xml += `  <checklist>http://s.s/test</checklist>\n`;
+    xml += `  <checklist>${escapeHtml(checklist)}</checklist>\n`;
     if (confluenceToken) xml += `  <confluence_token>${escapeHtml(confluenceToken)}</confluence_token>\n`;
     xml += `</test_generation>`;
 
