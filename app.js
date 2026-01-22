@@ -640,13 +640,14 @@ const parseXML = xml => {
     }
 
     // Fallback to regex for malformed XML
-    const testRe = /<test[^>]*(?:name|id)\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)(?:<\/test>|(?=<test)|(?=<\/tests>)|(?=<additional_checks>)|$)/gi;
+    const testRe = /<test[^>]*(?:name|id)\s*=\s*(?:"([^"]*)"|'([^']*)')[ ^>]*>([\s\S]*?)(?:<\/test>|(?=<test)|(?=<\/tests>)|(?=<additional_checks>)|$)/gi;
     let m;
 
     while ((m = testRe.exec(xml)) !== null) {
-        const content = m[2].trim().replace(/<\/?tests>/gi, '').trim();
+        const id = m[1] || m[2];  // m[1] для двойных кавычек, m[2] для одинарных
+        const content = m[3].trim().replace(/<\/?tests>/gi, '').trim();
         if (content && !content.startsWith('<additional_checks')) {
-            result.tests.push({ id: m[1], content });
+            result.tests.push({ id, content });
         }
     }
 
@@ -663,10 +664,11 @@ const parseXML = xml => {
 
     const addMatch = xml.match(/<additional_checks[^>]*>([\s\S]*?)(?:<\/additional_checks>|$)/i);
     if (addMatch) {
-        const checkRe = /<check[^>]*(?:name|id)\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)(?:<\/check>|(?=<check)|(?=<\/additional_checks>)|$)/gi;
+        const checkRe = /<check[^>]*(?:name|id)\s*=\s*(?:"([^"]*)"|'([^']*)')[ ^>]*>([\s\S]*?)(?:<\/check>|(?=<check)|(?=<\/additional_checks>)|$)/gi;
         while ((m = checkRe.exec(addMatch[1])) !== null) {
-            const content = m[2].trim();
-            if (content) result.checks.push({ id: m[1], content });
+            const id = m[1] || m[2];  // m[1] для двойных кавычек, m[2] для одинарных
+            const content = m[3].trim();
+            if (content) result.checks.push({ id, content });
         }
         if (!result.checks.length) {
             const clean = addMatch[1].replace(/<\/?check[^>]*>/gi, '').trim();
