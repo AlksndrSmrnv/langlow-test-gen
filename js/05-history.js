@@ -112,6 +112,12 @@
             const history = loadHistory();
             const filtered = history.filter(h => h.id !== id);
             localStorage.setItem(config.HISTORY_STORAGE_KEY, JSON.stringify(filtered));
+
+            // Clear currentHistoryId if deleting the active history item
+            if (state.currentHistoryId === id) {
+                state.currentHistoryId = null;
+            }
+
             renderHistory();
         } catch (e) {
             console.error('Error deleting from history:', e);

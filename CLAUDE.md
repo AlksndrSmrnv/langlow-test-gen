@@ -187,7 +187,7 @@ Generate tests → saveToHistory() (with current agent chat) → localStorage �
 - `loadHistory()` - Retrieves history array from localStorage (max 50 items)
 - `renderHistory()` - Displays history items in modal with load/delete actions
 - `loadGenerationFromHistory()` - Restores a previous generation by ID, updates `state.currentHistoryId`, restores chat
-- `deleteFromHistory()` - Removes a history item and re-renders list
+- `deleteFromHistory()` - Removes a history item, clears `currentHistoryId` if deleting active item, re-renders list
 
 ### TG.modal (06-modal.js)
 - `openSettingsModal()` / `closeSettingsModal()` - Settings modal controls
