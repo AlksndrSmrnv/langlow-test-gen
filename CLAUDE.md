@@ -119,9 +119,17 @@ Select checks → buildChecksXML() → XML payload → Langflow API →
 
 **History Flow:**
 ```
-Generate tests → saveToHistory() (with agent chat messages) → localStorage →
+Generate tests → saveToHistory() (with current agent chat) → localStorage →
+→ Agent edits test → updateCurrentHistoryWithChat() → Update localStorage →
+→ Generate new tests → saveToHistory(old tests with chat) → saveToHistory(new tests with empty chat) →
 → History modal → Load generation → showResults() → restoreAgentChat() → Restore UI
 ```
+
+**Chat History Preservation:**
+- Each generation is saved with its own agent chat messages
+- When user modifies tests via agent, chat is immediately saved to current history item
+- When generating new tests, old generation (with its chat) is saved first, then new generation (with empty chat) is saved
+- This ensures each generation preserves its own conversation context
 
 ## Key Functions by Module
 
@@ -133,8 +141,8 @@ Generate tests → saveToHistory() (with agent chat messages) → localStorage �
 - `extractResponse()` - Extracts text from nested Langflow response structure
 
 ### TG.generation (14-generation.js)
-- `generate()` - Main generation orchestration with error handling and abort support
-- `generateFromChecks()` - Generates new tests from selected additional checks (append mode)
+- `generate()` - Main generation orchestration: saves current tests with chat, generates new tests, saves new tests with empty chat
+- `generateFromChecks()` - Generates new tests from selected checks: saves current tests with chat, generates new tests, appends and saves all tests
 
 ### TG.results (12-results.js)
 - `showResults(data, append)` - Displays parsed tests and checks (supports append mode)
@@ -152,7 +160,7 @@ Generate tests → saveToHistory() (with agent chat messages) → localStorage �
 - `updateSelection()` - Manages agent chat availability based on selection
 
 ### TG.agent (11-agent.js)
-- `sendAgentMsg()` - Processes chat messages, updates tests
+- `sendAgentMsg()` - Processes chat messages, updates tests, and saves chat to history
 - `addMessage()` - Adds chat message bubble to UI
 - `resetAgent()` - Clears chat state
 - `restoreAgentChat()` - Restores chat messages from history
@@ -171,7 +179,8 @@ Generate tests → saveToHistory() (with agent chat messages) → localStorage �
 - `headers()` - Builds API headers with optional auth
 
 ### TG.history (05-history.js)
-- `saveToHistory()` - Saves generation results with metadata and agent chat messages to localStorage
+- `saveToHistory()` - Saves generation results with current agent chat messages to localStorage
+- `updateCurrentHistoryWithChat()` - Updates most recent history item with current agent chat (called after each agent message)
 - `loadHistory()` - Retrieves history array from localStorage (max 50 items)
 - `renderHistory()` - Displays history items in modal with load/delete actions
 - `loadGenerationFromHistory()` - Restores a previous generation by ID and its agent chat history

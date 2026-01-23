@@ -51,6 +51,21 @@
         }
     };
 
+    const updateCurrentHistoryWithChat = () => {
+        try {
+            const history = loadHistory();
+            if (!history.length) return;
+
+            // Update the most recent history item with current chat messages
+            const currentItem = history[0];
+            currentItem.agentMessages = [...state.agentState.messages];
+
+            localStorage.setItem(config.HISTORY_STORAGE_KEY, JSON.stringify(history));
+        } catch (e) {
+            console.error('Error updating history with chat:', e);
+        }
+    };
+
     const loadGenerationFromHistory = (id) => {
         try {
             const history = loadHistory();
@@ -155,6 +170,7 @@
     TG.history = {
         saveToHistory,
         loadHistory,
+        updateCurrentHistoryWithChat,
         loadGenerationFromHistory,
         deleteFromHistory,
         renderHistory,
