@@ -128,10 +128,11 @@ Generate tests → saveToHistory() (with current agent chat) → localStorage �
 **Chat History Preservation:**
 - Each generation is saved with its own agent chat messages and test data
 - `state.currentHistoryId` tracks which history item is currently active
+- **Deep cloning** - all test/check objects and chat messages are cloned using `map(obj => ({...obj}))` to prevent shared references
 - When user modifies tests via agent, both chat AND updated test data are saved to the active history item (by ID)
 - When generating new tests, old generation (with its chat and data) is saved first, then new generation (with empty chat) is saved
 - When loading from history, `currentHistoryId` is updated to the loaded item's ID
-- This ensures each generation preserves its own conversation context and test modifications, even when loading older generations
+- This ensures each generation preserves its own conversation context and test modifications, isolated from other history entries
 
 ## Key Functions by Module
 
@@ -143,8 +144,8 @@ Generate tests → saveToHistory() (with current agent chat) → localStorage �
 - `extractResponse()` - Extracts text from nested Langflow response structure
 
 ### TG.generation (14-generation.js)
-- `generate()` - Main generation orchestration: saves current tests with chat, generates new tests, saves new tests with empty chat
-- `generateFromChecks()` - Generates new tests from selected checks: saves current tests with chat, generates new tests, appends and saves all tests
+- `generate()` - Main generation: deep-clones and saves current tests with chat, generates new tests, saves new tests with empty chat
+- `generateFromChecks()` - Generates from selected checks: deep-clones and saves current tests with chat, generates new tests, appends and saves all
 
 ### TG.results (12-results.js)
 - `showResults(data, append)` - Displays parsed tests and checks (supports append mode)
@@ -181,8 +182,8 @@ Generate tests → saveToHistory() (with current agent chat) → localStorage �
 - `headers()` - Builds API headers with optional auth
 
 ### TG.history (05-history.js)
-- `saveToHistory()` - Saves generation results with current agent chat to localStorage, sets `state.currentHistoryId`
-- `updateCurrentHistoryWithChat()` - Updates the active history item (by `state.currentHistoryId`) with current agent chat AND test data
+- `saveToHistory()` - Saves generation with deep-cloned test/check/message data, sets `state.currentHistoryId`
+- `updateCurrentHistoryWithChat()` - Updates active history item with deep-cloned chat AND test data (prevents shared references)
 - `loadHistory()` - Retrieves history array from localStorage (max 50 items)
 - `renderHistory()` - Displays history items in modal with load/delete actions
 - `loadGenerationFromHistory()` - Restores a previous generation by ID, updates `state.currentHistoryId`, restores chat

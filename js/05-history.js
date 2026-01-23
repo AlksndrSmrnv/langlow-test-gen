@@ -5,7 +5,7 @@
     const { dom } = state;
     const { plural } = utils;
 
-    const saveToHistory = (parsedData, requestParams, agentMessages = []) => {
+    const saveToHistory = (parsedData, requestParams) => {
         try {
             const history = loadHistory();
             const timestamp = new Date().toISOString();
@@ -23,9 +23,13 @@
                 timestamp: timestamp,
                 testsCount: parsedData.tests?.length || 0,
                 checksCount: parsedData.checks?.length || 0,
-                data: parsedData,
+                data: {
+                    tests: parsedData.tests?.map(t => ({...t})) || [],
+                    checks: parsedData.checks?.map(c => ({...c})) || [],
+                    checksRaw: parsedData.checksRaw || ''
+                },
                 params: requestParams,
-                agentMessages: agentMessages // Save chat messages passed as parameter
+                agentMessages: state.agentState.messages.map(m => ({...m})) // Deep clone chat messages
             };
 
             history.unshift(historyItem);
@@ -66,10 +70,10 @@
             const currentItem = history.find(h => h.id === currentHistoryId);
             if (!currentItem) return;
 
-            // Update the found item with current chat messages AND test data
-            currentItem.agentMessages = [...state.agentState.messages];
-            currentItem.data.tests = [...state.testsData];
-            currentItem.data.checks = [...state.checksData];
+            // Update the found item with current chat messages AND test data (deep clone)
+            currentItem.agentMessages = state.agentState.messages.map(m => ({...m}));
+            currentItem.data.tests = state.testsData.map(t => ({...t}));
+            currentItem.data.checks = state.checksData.map(c => ({...c}));
             currentItem.testsCount = state.testsData.length;
             currentItem.checksCount = state.checksData.length;
 
