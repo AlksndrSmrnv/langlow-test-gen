@@ -29,9 +29,13 @@
         // Event delegation
         document.addEventListener('click', e => {
             const t = e.target;
+            const isTextNode = t?.nodeType === Node.TEXT_NODE;
+            const elementTarget = isTextNode ? t.parentElement : t;
+            const settingsBtn = elementTarget?.closest?.('#settingsBtn');
+            const historyBtn = elementTarget?.closest?.('#historyBtn');
 
             // Settings
-            if (t.id === 'settingsBtn') openModal();
+            if (settingsBtn) openModal();
             if (t.id === 'closeSettingsBtn') closeModalWithoutSave();
             if (t.id === 'saveSettingsBtn') saveSettingsAndClose();
             if (t.id === 'settingsModal' && t === e.target) closeModal(); // Click on backdrop
@@ -39,7 +43,7 @@
             if (t.id === 'importSettingsBtn') importSettings();
 
             // History
-            if (t.id === 'historyBtn') openHistoryModal();
+            if (historyBtn) openHistoryModal();
             if (t.id === 'closeHistoryBtn' || t.id === 'historyModal') closeHistoryModal();
             if (t.dataset.historyId) loadGenerationFromHistory(t.dataset.historyId);
             if (t.dataset.historyDelete) {
