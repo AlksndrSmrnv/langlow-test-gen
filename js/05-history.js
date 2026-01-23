@@ -36,6 +36,9 @@
             }
 
             localStorage.setItem(config.HISTORY_STORAGE_KEY, JSON.stringify(history));
+
+            // Set the newly created item as the current history ID
+            state.currentHistoryId = timestamp;
         } catch (e) {
             console.error('Error saving to history:', e);
         }
@@ -56,8 +59,14 @@
             const history = loadHistory();
             if (!history.length) return;
 
-            // Update the most recent history item with current chat messages
-            const currentItem = history[0];
+            // Find the currently active history item by ID
+            const currentHistoryId = state.currentHistoryId;
+            if (!currentHistoryId) return;
+
+            const currentItem = history.find(h => h.id === currentHistoryId);
+            if (!currentItem) return;
+
+            // Update the found item with current chat messages
             currentItem.agentMessages = [...state.agentState.messages];
 
             localStorage.setItem(config.HISTORY_STORAGE_KEY, JSON.stringify(history));
@@ -71,6 +80,9 @@
             const history = loadHistory();
             const item = history.find(h => h.id === id);
             if (item && item.data) {
+                // Set this as the current active history item
+                state.currentHistoryId = id;
+
                 // Late binding for results module
                 TG.results.showResults(item.data);
 

@@ -127,9 +127,11 @@ Generate tests → saveToHistory() (with current agent chat) → localStorage �
 
 **Chat History Preservation:**
 - Each generation is saved with its own agent chat messages
-- When user modifies tests via agent, chat is immediately saved to current history item
+- `state.currentHistoryId` tracks which history item is currently active
+- When user modifies tests via agent, chat is saved to the active history item (by ID)
 - When generating new tests, old generation (with its chat) is saved first, then new generation (with empty chat) is saved
-- This ensures each generation preserves its own conversation context
+- When loading from history, `currentHistoryId` is updated to the loaded item's ID
+- This ensures each generation preserves its own conversation context, even when loading older generations
 
 ## Key Functions by Module
 
@@ -179,11 +181,11 @@ Generate tests → saveToHistory() (with current agent chat) → localStorage �
 - `headers()` - Builds API headers with optional auth
 
 ### TG.history (05-history.js)
-- `saveToHistory()` - Saves generation results with current agent chat messages to localStorage
-- `updateCurrentHistoryWithChat()` - Updates most recent history item with current agent chat (called after each agent message)
+- `saveToHistory()` - Saves generation results with current agent chat to localStorage, sets `state.currentHistoryId`
+- `updateCurrentHistoryWithChat()` - Updates the active history item (by `state.currentHistoryId`) with current agent chat
 - `loadHistory()` - Retrieves history array from localStorage (max 50 items)
 - `renderHistory()` - Displays history items in modal with load/delete actions
-- `loadGenerationFromHistory()` - Restores a previous generation by ID and its agent chat history
+- `loadGenerationFromHistory()` - Restores a previous generation by ID, updates `state.currentHistoryId`, restores chat
 - `deleteFromHistory()` - Removes a history item and re-renders list
 
 ### TG.modal (06-modal.js)
@@ -266,7 +268,8 @@ TestGen.state = {
   settingsChanged: false,     // Tracks if settings were modified
   originalSettings: null,     // Stores original settings for comparison
   isGenerating: false,        // Prevents duplicate generation clicks
-  isSendingJira: false        // Prevents duplicate JIRA submission clicks
+  isSendingJira: false,       // Prevents duplicate JIRA submission clicks
+  currentHistoryId: null      // ID of currently active history item
 }
 ```
 
