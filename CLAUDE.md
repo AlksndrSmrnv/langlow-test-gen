@@ -119,9 +119,20 @@ Select checks → buildChecksXML() → XML payload → Langflow API →
 
 **History Flow:**
 ```
-Generate tests → saveToHistory() (with agent chat messages) → localStorage →
+Generate tests → saveToHistory() (with current agent chat) → localStorage →
+→ Agent edits test → updateCurrentHistoryWithChat() → Update localStorage →
+→ Generate new tests → saveToHistory(old tests with chat) → saveToHistory(new tests with empty chat) →
 → History modal → Load generation → showResults() → restoreAgentChat() → Restore UI
 ```
+
+**Chat History Preservation:**
+- Each generation is saved with its own agent chat messages and test data
+- `state.currentHistoryId` tracks which history item is currently active
+- **Deep cloning** - all test/check objects and chat messages are cloned using `map(obj => ({...obj}))` to prevent shared references
+- When user modifies tests via agent, both chat AND updated test data are saved to the active history item (by ID)
+- When generating new tests, old generation (with its chat and data) is saved first, then new generation (with empty chat) is saved
+- When loading from history, `currentHistoryId` is updated to the loaded item's ID
+- This ensures each generation preserves its own conversation context and test modifications, isolated from other history entries
 
 ## Key Functions by Module
 
@@ -133,8 +144,8 @@ Generate tests → saveToHistory() (with agent chat messages) → localStorage �
 - `extractResponse()` - Extracts text from nested Langflow response structure
 
 ### TG.generation (14-generation.js)
-- `generate()` - Main generation orchestration with error handling and abort support
-- `generateFromChecks()` - Generates new tests from selected additional checks (append mode)
+- `generate()` - Main generation: deep-clones and saves current tests with chat, generates new tests, saves new tests with empty chat
+- `generateFromChecks()` - Generates from selected checks: deep-clones and saves current tests with chat, generates new tests, appends and saves all
 
 ### TG.results (12-results.js)
 - `showResults(data, append)` - Displays parsed tests and checks (supports append mode)
@@ -152,7 +163,7 @@ Generate tests → saveToHistory() (with agent chat messages) → localStorage �
 - `updateSelection()` - Manages agent chat availability based on selection
 
 ### TG.agent (11-agent.js)
-- `sendAgentMsg()` - Processes chat messages, updates tests
+- `sendAgentMsg()` - Processes chat messages, updates tests, and saves chat to history
 - `addMessage()` - Adds chat message bubble to UI
 - `resetAgent()` - Clears chat state
 - `restoreAgentChat()` - Restores chat messages from history
@@ -171,11 +182,12 @@ Generate tests → saveToHistory() (with agent chat messages) → localStorage �
 - `headers()` - Builds API headers with optional auth
 
 ### TG.history (05-history.js)
-- `saveToHistory()` - Saves generation results with metadata and agent chat messages to localStorage
+- `saveToHistory()` - Saves generation with deep-cloned test/check/message data, sets `state.currentHistoryId`
+- `updateCurrentHistoryWithChat()` - Updates active history item with deep-cloned chat AND test data (prevents shared references)
 - `loadHistory()` - Retrieves history array from localStorage (max 50 items)
 - `renderHistory()` - Displays history items in modal with load/delete actions
-- `loadGenerationFromHistory()` - Restores a previous generation by ID and its agent chat history
-- `deleteFromHistory()` - Removes a history item and re-renders list
+- `loadGenerationFromHistory()` - Restores a previous generation by ID, updates `state.currentHistoryId`, restores chat
+- `deleteFromHistory()` - Removes a history item, clears `currentHistoryId` if deleting active item, re-renders list
 
 ### TG.modal (06-modal.js)
 - `openSettingsModal()` / `closeSettingsModal()` - Settings modal controls
@@ -257,7 +269,8 @@ TestGen.state = {
   settingsChanged: false,     // Tracks if settings were modified
   originalSettings: null,     // Stores original settings for comparison
   isGenerating: false,        // Prevents duplicate generation clicks
-  isSendingJira: false        // Prevents duplicate JIRA submission clicks
+  isSendingJira: false,       // Prevents duplicate JIRA submission clicks
+  currentHistoryId: null      // ID of currently active history item
 }
 ```
 

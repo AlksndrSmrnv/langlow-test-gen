@@ -43,8 +43,19 @@
             const xmlData = buildXML();
             const settings = getSettings();
 
-            // Capture agent messages before reset
-            const previousAgentMessages = [...state.agentState.messages];
+            // Save current generation with its chat history before generating new tests (deep clone)
+            if (state.testsData.length > 0 || state.checksData.length > 0) {
+                const currentData = {
+                    tests: state.testsData.map(t => ({...t})),
+                    checks: state.checksData.map(c => ({...c})),
+                    checksRaw: ''
+                };
+                const currentParams = {
+                    features: Array.from($('.feature-input')).map(i => i.value.trim()).filter(Boolean),
+                    checklistUrl: dom.checklistUrl?.value?.trim() || ''
+                };
+                saveToHistory(currentData, currentParams);
+            }
 
             $('.section').forEach(s => s.classList.add('collapsed'));
             dom.generateBtn.classList.add('hidden');
@@ -88,12 +99,12 @@
             const parsed = parseXML(generated);
 
             if (parsed.tests.length || parsed.checks.length || parsed.checksRaw) {
-                // Save to history with previous agent messages
+                // Save to history
                 const requestParams = {
                     features: Array.from($('.feature-input')).map(i => i.value.trim()).filter(Boolean),
                     checklistUrl: dom.checklistUrl.value.trim()
                 };
-                saveToHistory(parsed, requestParams, previousAgentMessages);
+                saveToHistory(parsed, requestParams);
 
                 showResults(parsed);
             } else {
@@ -152,8 +163,19 @@
             const xmlData = buildChecksXML(selectedChecks);
             const settings = getSettings();
 
-            // Capture agent messages before reset
-            const previousAgentMessages = [...state.agentState.messages];
+            // Save current generation with its chat history before generating new tests (deep clone)
+            if (state.testsData.length > 0 || state.checksData.length > 0) {
+                const currentData = {
+                    tests: state.testsData.map(t => ({...t})),
+                    checks: state.checksData.map(c => ({...c})),
+                    checksRaw: ''
+                };
+                const currentParams = {
+                    features: Array.from($('.feature-input')).map(i => i.value.trim()).filter(Boolean),
+                    checklistUrl: dom.checklistUrl?.value?.trim() || ''
+                };
+                saveToHistory(currentData, currentParams);
+            }
 
             $('.section').forEach(s => s.classList.add('collapsed'));
             dom.generateBtn.classList.add('hidden');
@@ -200,7 +222,7 @@
                 // Append new tests to existing ones first
                 showResults(parsed, true);
 
-                // Save to history with ALL tests (old + new) and previous agent messages
+                // Save to history with ALL tests (old + new)
                 const fullData = {
                     tests: state.testsData,        // All tests after append
                     checks: state.checksData,      // All checks after append
@@ -210,7 +232,7 @@
                     features: Array.from($('.feature-input')).map(i => i.value.trim()).filter(Boolean),
                     selectedChecks: selectedChecks.length
                 };
-                saveToHistory(fullData, requestParams, previousAgentMessages);
+                saveToHistory(fullData, requestParams);
             } else {
                 showPlainText(generated);
             }

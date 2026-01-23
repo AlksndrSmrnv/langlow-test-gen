@@ -1,10 +1,11 @@
 (function(TG) {
     'use strict';
 
-    const { state, utils, cards } = TG;
+    const { state, utils, cards, history } = TG;
     const { dom } = state;
     const { scrollToBottom, getSettings, headers, buildBody, sessionId, extractResponse } = utils;
     const { updateCard } = cards;
+    const { updateCurrentHistoryWithChat } = history;
 
     const addMessage = (text, isUser) => {
         const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -68,6 +69,9 @@
             state.testsData[state.agentState.selectedIndex].content = response;
             updateCard(state.agentState.selectedIndex, response);
             addMessage('Тест успешно обновлен!', false);
+
+            // Update history with current chat messages
+            updateCurrentHistoryWithChat();
 
         } catch (e) {
             console.error('Agent error:', e);

@@ -5,7 +5,7 @@
     const { dom } = state;
     const { plural } = utils;
 
-    const saveToHistory = (parsedData, requestParams, agentMessages = []) => {
+    const saveToHistory = (parsedData, requestParams) => {
         try {
             const history = loadHistory();
             const timestamp = new Date().toISOString();
@@ -23,9 +23,13 @@
                 timestamp: timestamp,
                 testsCount: parsedData.tests?.length || 0,
                 checksCount: parsedData.checks?.length || 0,
-                data: parsedData,
+                data: {
+                    tests: parsedData.tests?.map(t => ({...t})) || [],
+                    checks: parsedData.checks?.map(c => ({...c})) || [],
+                    checksRaw: parsedData.checksRaw || ''
+                },
                 params: requestParams,
-                agentMessages: agentMessages // Save chat messages passed as parameter
+                agentMessages: state.agentState.messages.map(m => ({...m})) // Deep clone chat messages
             };
 
             history.unshift(historyItem);
@@ -36,6 +40,9 @@
             }
 
             localStorage.setItem(config.HISTORY_STORAGE_KEY, JSON.stringify(history));
+
+            // Set the newly created item as the current history ID
+            state.currentHistoryId = timestamp;
         } catch (e) {
             console.error('Error saving to history:', e);
         }
@@ -51,11 +58,39 @@
         }
     };
 
+    const updateCurrentHistoryWithChat = () => {
+        try {
+            const history = loadHistory();
+            if (!history.length) return;
+
+            // Find the currently active history item by ID
+            const currentHistoryId = state.currentHistoryId;
+            if (!currentHistoryId) return;
+
+            const currentItem = history.find(h => h.id === currentHistoryId);
+            if (!currentItem) return;
+
+            // Update the found item with current chat messages AND test data (deep clone)
+            currentItem.agentMessages = state.agentState.messages.map(m => ({...m}));
+            currentItem.data.tests = state.testsData.map(t => ({...t}));
+            currentItem.data.checks = state.checksData.map(c => ({...c}));
+            currentItem.testsCount = state.testsData.length;
+            currentItem.checksCount = state.checksData.length;
+
+            localStorage.setItem(config.HISTORY_STORAGE_KEY, JSON.stringify(history));
+        } catch (e) {
+            console.error('Error updating history with chat:', e);
+        }
+    };
+
     const loadGenerationFromHistory = (id) => {
         try {
             const history = loadHistory();
             const item = history.find(h => h.id === id);
             if (item && item.data) {
+                // Set this as the current active history item
+                state.currentHistoryId = id;
+
                 // Late binding for results module
                 TG.results.showResults(item.data);
 
@@ -77,6 +112,12 @@
             const history = loadHistory();
             const filtered = history.filter(h => h.id !== id);
             localStorage.setItem(config.HISTORY_STORAGE_KEY, JSON.stringify(filtered));
+
+            // Clear currentHistoryId if deleting the active history item
+            if (state.currentHistoryId === id) {
+                state.currentHistoryId = null;
+            }
+
             renderHistory();
         } catch (e) {
             console.error('Error deleting from history:', e);
@@ -155,6 +196,7 @@
     TG.history = {
         saveToHistory,
         loadHistory,
+        updateCurrentHistoryWithChat,
         loadGenerationFromHistory,
         deleteFromHistory,
         renderHistory,

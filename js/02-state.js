@@ -12,7 +12,8 @@
         settingsChanged: false,
         originalSettings: null,
         isGenerating: false, // Защита от повторных кликов на генерацию
-        isSendingJira: false // Защита от повторных кликов на отправку в JIRA
+        isSendingJira: false, // Защита от повторных кликов на отправку в JIRA
+        currentHistoryId: null // ID текущей активной записи истории
     };
 
 })(window.TestGen);
