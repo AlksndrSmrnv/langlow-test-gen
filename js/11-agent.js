@@ -87,10 +87,54 @@
         dom.agentChatInput.value = '';
     };
 
+    const restoreAgentChat = (messages) => {
+        if (!messages || !Array.isArray(messages) || !messages.length) {
+            resetAgent();
+            return;
+        }
+
+        // Clear current chat
+        dom.agentChatMessages.innerHTML = '';
+        state.agentState.messages = [];
+
+        // Restore messages
+        messages.forEach(msg => {
+            const time = new Date(msg.time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            const msgEl = document.createElement('div');
+            msgEl.className = `agent-message ${msg.isUser ? 'user' : 'agent'}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'agent-message-avatar';
+            avatar.textContent = msg.isUser ? '👤' : '🤖';
+
+            const content = document.createElement('div');
+            content.className = 'agent-message-content';
+
+            const textEl = document.createElement('p');
+            textEl.className = 'agent-message-text';
+            textEl.textContent = msg.text;
+
+            const timeEl = document.createElement('div');
+            timeEl.className = 'agent-message-time';
+            timeEl.textContent = time;
+
+            content.appendChild(textEl);
+            content.appendChild(timeEl);
+            msgEl.appendChild(avatar);
+            msgEl.appendChild(content);
+
+            dom.agentChatMessages.appendChild(msgEl);
+            state.agentState.messages.push(msg);
+        });
+
+        scrollToBottom(dom.agentChatMessages.closest('.agent-chat-body'));
+    };
+
     TG.agent = {
         addMessage,
         sendAgentMsg,
-        resetAgent
+        resetAgent,
+        restoreAgentChat
     };
 
 })(window.TestGen);
