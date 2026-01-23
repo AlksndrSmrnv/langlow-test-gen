@@ -43,6 +43,9 @@
             const xmlData = buildXML();
             const settings = getSettings();
 
+            // Capture agent messages before reset
+            const previousAgentMessages = [...state.agentState.messages];
+
             $('.section').forEach(s => s.classList.add('collapsed'));
             dom.generateBtn.classList.add('hidden');
             dom.generateBtn.disabled = true;
@@ -85,12 +88,12 @@
             const parsed = parseXML(generated);
 
             if (parsed.tests.length || parsed.checks.length || parsed.checksRaw) {
-                // Save to history
+                // Save to history with previous agent messages
                 const requestParams = {
                     features: Array.from($('.feature-input')).map(i => i.value.trim()).filter(Boolean),
                     checklistUrl: dom.checklistUrl.value.trim()
                 };
-                saveToHistory(parsed, requestParams);
+                saveToHistory(parsed, requestParams, previousAgentMessages);
 
                 showResults(parsed);
             } else {
@@ -149,6 +152,9 @@
             const xmlData = buildChecksXML(selectedChecks);
             const settings = getSettings();
 
+            // Capture agent messages before reset
+            const previousAgentMessages = [...state.agentState.messages];
+
             $('.section').forEach(s => s.classList.add('collapsed'));
             dom.generateBtn.classList.add('hidden');
             dom.generateBtn.disabled = true;
@@ -194,7 +200,7 @@
                 // Append new tests to existing ones first
                 showResults(parsed, true);
 
-                // Save to history with ALL tests (old + new)
+                // Save to history with ALL tests (old + new) and previous agent messages
                 const fullData = {
                     tests: state.testsData,        // All tests after append
                     checks: state.checksData,      // All checks after append
@@ -204,7 +210,7 @@
                     features: Array.from($('.feature-input')).map(i => i.value.trim()).filter(Boolean),
                     selectedChecks: selectedChecks.length
                 };
-                saveToHistory(fullData, requestParams);
+                saveToHistory(fullData, requestParams, previousAgentMessages);
             } else {
                 showPlainText(generated);
             }

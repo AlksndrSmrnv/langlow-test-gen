@@ -5,7 +5,7 @@
     const { dom } = state;
     const { plural } = utils;
 
-    const saveToHistory = (parsedData, requestParams) => {
+    const saveToHistory = (parsedData, requestParams, agentMessages = []) => {
         try {
             const history = loadHistory();
             const timestamp = new Date().toISOString();
@@ -25,7 +25,7 @@
                 checksCount: parsedData.checks?.length || 0,
                 data: parsedData,
                 params: requestParams,
-                agentMessages: [...state.agentState.messages] // Save chat messages
+                agentMessages: agentMessages // Save chat messages passed as parameter
             };
 
             history.unshift(historyItem);
