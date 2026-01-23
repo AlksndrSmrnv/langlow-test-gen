@@ -71,6 +71,9 @@ Web application for generating integration tests with Russian language interface
 - History modal showing past generations with timestamps
 - Display test count and additional checks count per generation
 - Load previous generations to restore all tests and checks
+- **Agent Chat History** - Saves and restores agent chat messages per generation
+- Each generation preserves its own chat conversation
+- Switching between histories automatically restores the corresponding chat
 - Delete individual history entries
 - Automatically saves up to 50 most recent generations
 
@@ -116,8 +119,8 @@ Select checks → buildChecksXML() → XML payload → Langflow API →
 
 **History Flow:**
 ```
-Generate tests → saveToHistory() → localStorage →
-→ History modal → Load generation → showResults() → Restore UI
+Generate tests → saveToHistory() (with agent chat messages) → localStorage →
+→ History modal → Load generation → showResults() → restoreAgentChat() → Restore UI
 ```
 
 ## Key Functions by Module
@@ -152,6 +155,7 @@ Generate tests → saveToHistory() → localStorage →
 - `sendAgentMsg()` - Processes chat messages, updates tests
 - `addMessage()` - Adds chat message bubble to UI
 - `resetAgent()` - Clears chat state
+- `restoreAgentChat()` - Restores chat messages from history
 
 ### TG.jira (13-jira.js)
 - `sendJira()` - Parallel JIRA submission with status reporting
@@ -167,10 +171,10 @@ Generate tests → saveToHistory() → localStorage →
 - `headers()` - Builds API headers with optional auth
 
 ### TG.history (05-history.js)
-- `saveToHistory()` - Saves generation results with metadata to localStorage
+- `saveToHistory()` - Saves generation results with metadata and agent chat messages to localStorage
 - `loadHistory()` - Retrieves history array from localStorage (max 50 items)
 - `renderHistory()` - Displays history items in modal with load/delete actions
-- `loadGenerationFromHistory()` - Restores a previous generation by ID
+- `loadGenerationFromHistory()` - Restores a previous generation by ID and its agent chat history
 - `deleteFromHistory()` - Removes a history item and re-renders list
 
 ### TG.modal (06-modal.js)

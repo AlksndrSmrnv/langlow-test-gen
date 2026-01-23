@@ -24,7 +24,8 @@
                 testsCount: parsedData.tests?.length || 0,
                 checksCount: parsedData.checks?.length || 0,
                 data: parsedData,
-                params: requestParams
+                params: requestParams,
+                agentMessages: [...state.agentState.messages] // Save chat messages
             };
 
             history.unshift(historyItem);
@@ -57,6 +58,12 @@
             if (item && item.data) {
                 // Late binding for results module
                 TG.results.showResults(item.data);
+
+                // Restore agent chat if available
+                if (TG.agent && TG.agent.restoreAgentChat) {
+                    TG.agent.restoreAgentChat(item.agentMessages || []);
+                }
+
                 closeHistoryModal();
             }
         } catch (e) {
