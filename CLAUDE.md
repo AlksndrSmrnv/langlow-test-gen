@@ -126,12 +126,12 @@ Generate tests → saveToHistory() (with current agent chat) → localStorage �
 ```
 
 **Chat History Preservation:**
-- Each generation is saved with its own agent chat messages
+- Each generation is saved with its own agent chat messages and test data
 - `state.currentHistoryId` tracks which history item is currently active
-- When user modifies tests via agent, chat is saved to the active history item (by ID)
-- When generating new tests, old generation (with its chat) is saved first, then new generation (with empty chat) is saved
+- When user modifies tests via agent, both chat AND updated test data are saved to the active history item (by ID)
+- When generating new tests, old generation (with its chat and data) is saved first, then new generation (with empty chat) is saved
 - When loading from history, `currentHistoryId` is updated to the loaded item's ID
-- This ensures each generation preserves its own conversation context, even when loading older generations
+- This ensures each generation preserves its own conversation context and test modifications, even when loading older generations
 
 ## Key Functions by Module
 
@@ -182,7 +182,7 @@ Generate tests → saveToHistory() (with current agent chat) → localStorage �
 
 ### TG.history (05-history.js)
 - `saveToHistory()` - Saves generation results with current agent chat to localStorage, sets `state.currentHistoryId`
-- `updateCurrentHistoryWithChat()` - Updates the active history item (by `state.currentHistoryId`) with current agent chat
+- `updateCurrentHistoryWithChat()` - Updates the active history item (by `state.currentHistoryId`) with current agent chat AND test data
 - `loadHistory()` - Retrieves history array from localStorage (max 50 items)
 - `renderHistory()` - Displays history items in modal with load/delete actions
 - `loadGenerationFromHistory()` - Restores a previous generation by ID, updates `state.currentHistoryId`, restores chat

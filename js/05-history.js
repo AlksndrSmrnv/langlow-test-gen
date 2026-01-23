@@ -66,8 +66,12 @@
             const currentItem = history.find(h => h.id === currentHistoryId);
             if (!currentItem) return;
 
-            // Update the found item with current chat messages
+            // Update the found item with current chat messages AND test data
             currentItem.agentMessages = [...state.agentState.messages];
+            currentItem.data.tests = [...state.testsData];
+            currentItem.data.checks = [...state.checksData];
+            currentItem.testsCount = state.testsData.length;
+            currentItem.checksCount = state.checksData.length;
 
             localStorage.setItem(config.HISTORY_STORAGE_KEY, JSON.stringify(history));
         } catch (e) {
