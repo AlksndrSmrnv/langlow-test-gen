@@ -148,8 +148,8 @@
 
         state.isGenerating = true;
 
-        const selectedChecks = selectedCheckboxes.map(cb => {
-            const idx = parseInt(cb.dataset.idx);
+        const selectedIndices = selectedCheckboxes.map(cb => parseInt(cb.dataset.idx));
+        const selectedChecks = selectedIndices.map(idx => {
             return state.checksData[idx]?.content || '';
         }).filter(Boolean);
 
@@ -219,6 +219,13 @@
             const parsed = parseXML(generated);
 
             if (parsed.tests.length || parsed.checks.length || parsed.checksRaw) {
+                // Mark selected checks as used
+                selectedIndices.forEach(idx => {
+                    if (state.checksData[idx]) {
+                        state.checksData[idx].used = true;
+                    }
+                });
+
                 // Append new tests to existing ones first
                 showResults(parsed, true);
 

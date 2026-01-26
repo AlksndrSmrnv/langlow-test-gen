@@ -19,14 +19,17 @@
             dom.testsSection.style.display = 'none';
             dom.additionalChecksSection.style.display = 'none';
             state.testsData = data.tests;
-            state.checksData = data.checks || [];
+            // Ensure backward compatibility: add 'used' field if missing
+            state.checksData = (data.checks || []).map(c => ({...c, used: c.used !== undefined ? c.used : false}));
         } else {
             // Append mode: add to existing tests
             state.testsData = state.testsData.concat(data.tests);
 
             // Append new check data if available
             if (data.checks && data.checks.length) {
-                state.checksData = state.checksData.concat(data.checks);
+                // Ensure backward compatibility: add 'used' field if missing
+                const newChecks = data.checks.map(c => ({...c, used: c.used !== undefined ? c.used : false}));
+                state.checksData = state.checksData.concat(newChecks);
             }
         }
 
