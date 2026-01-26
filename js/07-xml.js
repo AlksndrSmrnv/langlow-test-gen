@@ -38,7 +38,7 @@
                     checks.forEach(check => {
                         const id = check.getAttribute('name') || check.getAttribute('id') || 'Проверка';
                         const content = check.textContent.trim();
-                        if (content) result.checks.push({ id, content });
+                        if (content) result.checks.push({ id, content, used: false });
                     });
 
                     if (!result.checks.length) {
@@ -84,7 +84,7 @@
             while ((m = checkRe.exec(addMatch[1])) !== null) {
                 const id = m[1] || m[2];  // m[1] для двойных кавычек, m[2] для одинарных
                 const content = m[3].trim();
-                if (content) result.checks.push({ id, content });
+                if (content) result.checks.push({ id, content, used: false });
             }
             if (!result.checks.length) {
                 const clean = addMatch[1].replace(/<\/?check[^>]*>/gi, '').trim();

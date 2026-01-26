@@ -10,6 +10,11 @@
         card.className = isCheck ? 'card check-card' : 'card collapsed';
         card.dataset.idx = idx;
 
+        // Add 'used' class if this is a used check
+        if (isCheck && test.used) {
+            card.classList.add('used');
+        }
+
         const header = document.createElement('div');
         header.className = 'card-header';
 
@@ -21,6 +26,13 @@
         checkbox.type = 'checkbox';
         checkbox.className = isCheck ? 'check-card-checkbox' : 'card-checkbox';
         checkbox.dataset.idx = idx;
+
+        // Disable checkbox for used checks
+        if (isCheck && test.used) {
+            checkbox.disabled = true;
+            checkbox.checked = false;
+        }
+
         headerLeft.appendChild(checkbox);
 
         const cardId = document.createElement('div');
