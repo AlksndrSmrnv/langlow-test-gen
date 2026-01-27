@@ -14,8 +14,10 @@
 
         indices.forEach(idx => {
             const test = state.testsData[idx];
+            // Escape CDATA end sequence to prevent breaking CDATA section
+            const escapedContent = test.content.replace(/\]\]>/g, ']]]]><![CDATA[>');
             xml += `    <test id="${escapeHtml(test.id)}" index="${idx}">\n`;
-            xml += `      <content><![CDATA[${test.content}]]></content>\n`;
+            xml += `      <content><![CDATA[${escapedContent}]]></content>\n`;
             xml += '    </test>\n';
         });
 
@@ -25,6 +27,9 @@
 
     const parseAgentResponse = (xmlString) => {
         const updatedTests = [];
+
+        // Helper to unescape CDATA end sequences
+        const unescapeContent = (content) => content.replace(/\]\]\]\]><!\[CDATA\[>/g, ']]>');
 
         try {
             // Try DOMParser first
@@ -44,7 +49,7 @@
                 if (!isNaN(index) && contentNode) {
                     updatedTests.push({
                         index: index,
-                        content: contentNode.textContent.trim()
+                        content: unescapeContent(contentNode.textContent.trim())
                     });
                 }
             });
@@ -59,7 +64,7 @@
             while ((match = testRegex.exec(xmlString)) !== null) {
                 updatedTests.push({
                     index: parseInt(match[1]),
-                    content: match[2].trim()
+                    content: unescapeContent(match[2].trim())
                 });
             }
         }
