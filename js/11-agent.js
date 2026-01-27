@@ -3,9 +3,74 @@
 
     const { state, utils, cards, history } = TG;
     const { dom } = state;
-    const { scrollToBottom, getSettings, headers, buildBody, sessionId, extractResponse } = utils;
+    const { scrollToBottom, getSettings, headers, buildBody, sessionId, extractResponse, escapeHtml, plural } = utils;
     const { updateCard } = cards;
     const { updateCurrentHistoryWithChat } = history;
+
+    const buildAgentXML = (indices, userMessage) => {
+        let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<request>\n';
+        xml += `  <user_message>${escapeHtml(userMessage)}</user_message>\n`;
+        xml += '  <tests>\n';
+
+        indices.forEach(idx => {
+            const test = state.testsData[idx];
+            // Escape CDATA end sequence to prevent breaking CDATA section
+            const escapedContent = test.content.replace(/\]\]>/g, ']]]]><![CDATA[>');
+            xml += `    <test id="${escapeHtml(test.id)}" index="${idx}">\n`;
+            xml += `      <content><![CDATA[${escapedContent}]]></content>\n`;
+            xml += '    </test>\n';
+        });
+
+        xml += '  </tests>\n</request>';
+        return xml;
+    };
+
+    const parseAgentResponse = (xmlString) => {
+        const updatedTests = [];
+
+        // Helper to unescape CDATA end sequences
+        const unescapeContent = (content) => content.replace(/\]\]\]\]><!\[CDATA\[>/g, ']]>');
+
+        try {
+            // Try DOMParser first
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(xmlString, 'text/xml');
+
+            const parserError = doc.querySelector('parsererror');
+            if (parserError) {
+                throw new Error('XML parsing error');
+            }
+
+            const testNodes = doc.querySelectorAll('test');
+            testNodes.forEach(node => {
+                const index = parseInt(node.getAttribute('index'));
+                const contentNode = node.querySelector('content');
+
+                if (!isNaN(index) && contentNode) {
+                    updatedTests.push({
+                        index: index,
+                        content: unescapeContent(contentNode.textContent.trim())
+                    });
+                }
+            });
+
+        } catch (e) {
+            console.warn('DOMParser failed, trying regex fallback', e);
+
+            // Regex fallback for malformed XML
+            const testRegex = /<test[^>]*index="(\d+)"[^>]*>[\s\S]*?<content><!\[CDATA\[([\s\S]*?)\]\]><\/content>[\s\S]*?<\/test>/gi;
+            let match;
+
+            while ((match = testRegex.exec(xmlString)) !== null) {
+                updatedTests.push({
+                    index: parseInt(match[1]),
+                    content: unescapeContent(match[2].trim())
+                });
+            }
+        }
+
+        return updatedTests;
+    };
 
     const addMessage = (text, isUser) => {
         const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -39,9 +104,8 @@
 
     const sendAgentMsg = async () => {
         const msg = dom.agentChatInput.value.trim();
-        if (!msg || state.agentState.selectedIndex === null || state.agentState.processing) return;
+        if (!msg || state.agentState.selectedIndices.length === 0 || state.agentState.processing) return;
 
-        const test = state.testsData[state.agentState.selectedIndex];
         const settings = getSettings();
 
         addMessage(msg, true);
@@ -54,21 +118,38 @@
         try {
             if (!settings.agentUrl) throw new Error('Укажите URL Langflow для чата с агентом в настройках');
 
-            const prompt = `Текущий тест:\n\n${test.content}\n\n---\n\nЗапрос на изменение: ${msg}\n\nВерни обновленную версию теста целиком в markdown формате. Не добавляй никаких дополнительных комментариев, только сам тест.`;
+            // Build XML with all selected tests
+            const xmlPayload = buildAgentXML(state.agentState.selectedIndices, msg);
 
             const res = await fetch(settings.agentUrl, {
                 method: 'POST',
                 headers: headers(settings.apiKey),
-                body: JSON.stringify(buildBody(prompt, settings.format, sessionId()))
+                body: JSON.stringify(buildBody(xmlPayload, settings.format, sessionId()))
             });
 
             if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
 
             const response = extractResponse(await res.json());
 
-            state.testsData[state.agentState.selectedIndex].content = response;
-            updateCard(state.agentState.selectedIndex, response);
-            addMessage('Тест успешно обновлен!', false);
+            // Parse XML response and update all tests
+            const updatedTests = parseAgentResponse(response);
+
+            if (updatedTests.length === 0) {
+                throw new Error('Не удалось распарсить ответ от агента');
+            }
+
+            let successCount = 0;
+            updatedTests.forEach(({ index, content }) => {
+                if (state.testsData[index]) {
+                    state.testsData[index].content = content;
+                    updateCard(index, content);
+                    successCount++;
+                }
+            });
+
+            // Show count of updated tests
+            const testWord = plural(successCount, ['тест', 'теста', 'тестов']);
+            addMessage(`Успешно обновлено ${successCount} ${testWord}`, false);
 
             // Update history with current chat messages
             updateCurrentHistoryWithChat();
@@ -84,7 +165,7 @@
     };
 
     const resetAgent = () => {
-        state.agentState = { selectedIndex: null, messages: [], processing: false };
+        state.agentState = { selectedIndices: [], messages: [], processing: false };
         dom.agentChatMessages.innerHTML = '';
         dom.agentChatContext.classList.remove('active');
         dom.agentChatWarning.classList.remove('active');

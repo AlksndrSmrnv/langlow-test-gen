@@ -24,19 +24,19 @@
             dom.agentChatContext.classList.remove('active');
             dom.agentChatWarning.classList.remove('active');
             dom.agentChatSendBtn.disabled = true;
-            state.agentState.selectedIndex = null;
-        } else if (count === 1) {
-            const idx = parseInt(checked[0].dataset.idx);
-            state.agentState.selectedIndex = idx;
+            state.agentState.selectedIndices = [];
+        } else {
+            const indices = checked.map(cb => parseInt(cb.dataset.idx));
+            state.agentState.selectedIndices = indices;
+
             dom.agentChatContext.classList.add('active');
             dom.agentChatWarning.classList.remove('active');
-            dom.agentChatContextTest.textContent = state.testsData[idx].id;
             dom.agentChatSendBtn.disabled = false;
-        } else {
-            dom.agentChatContext.classList.remove('active');
-            dom.agentChatWarning.classList.add('active');
-            dom.agentChatSendBtn.disabled = true;
-            state.agentState.selectedIndex = null;
+
+            // Update context to show either test ID (if 1) or count (if multiple)
+            dom.agentChatContextTest.textContent = count === 1
+                ? state.testsData[indices[0]].id
+                : `${count} ${plural(count, ['тест', 'теста', 'тестов'])}`;
         }
     };
 
