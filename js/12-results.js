@@ -1,7 +1,7 @@
 (function(TG) {
     'use strict';
 
-    const { config, state, utils, cards, selection } = TG;
+    const { config, state, utils, cards, selection, jira } = TG;
     const { dom } = state;
     const { plural, md } = utils;
     const { createCard } = cards;
@@ -95,6 +95,11 @@
         }
 
         dom.resultSection.classList.add('active');
+
+        // Update JIRA button state after showing results
+        if (jira && jira.updateJiraSendButtonState) {
+            jira.updateJiraSendButtonState();
+        }
     };
 
     const showPlainText = text => {

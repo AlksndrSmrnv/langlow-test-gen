@@ -254,25 +254,29 @@
                     <input type="hidden" id="jiraConnectionUrl">
                     <input type="hidden" id="jiraConnectionToken">
 
+                    <div class="jira-required-info">
+                        <span class="required-marker">*</span> — обязательные поля для отправки тестов в JIRA
+                    </div>
+
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div class="input-group">
-                            <label for="jiraProjectKey">Project Key</label>
+                            <label for="jiraProjectKey">Project Key <span class="required-marker">*</span></label>
                             <input type="text" id="jiraProjectKey" placeholder="PROJ" required>
                             <p class="info-text">Ключ проекта в JIRA</p>
                         </div>
                         <div class="input-group">
-                            <label for="jiraFolderName">Название папки</label>
+                            <label for="jiraFolderName">Название папки <span class="required-marker">*</span></label>
                             <input type="text" id="jiraFolderName" placeholder="Sprint 1 / Feature Tests" required>
                             <p class="info-text">Путь к папке в JIRA Zephyr</p>
                         </div>
                         <div class="input-group">
-                            <label for="jiraConfigurationElement">АС(КЭ)</label>
-                            <input type="text" id="jiraConfigurationElement" placeholder="АС(КЭ)">
+                            <label for="jiraConfigurationElement">АС(КЭ) <span class="required-marker">*</span></label>
+                            <input type="text" id="jiraConfigurationElement" placeholder="АС(КЭ)" required>
                             <p class="info-text">Автоматизированная система (конфигурационный элемент)</p>
                         </div>
                         <div class="input-group">
-                            <label for="jiraTestType">Вид тестирования</label>
-                            <input type="text" id="jiraTestType" placeholder="Функциональное">
+                            <label for="jiraTestType">Вид тестирования <span class="required-marker">*</span></label>
+                            <input type="text" id="jiraTestType" placeholder="Функциональное" required>
                             <p class="info-text">Тип тестирования</p>
                         </div>
                     </div>

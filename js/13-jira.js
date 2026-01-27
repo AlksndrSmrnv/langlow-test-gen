@@ -6,16 +6,38 @@
     const { getSettings, buildBody, headers, sessionId, $ } = utils;
     const { buildJiraXML } = xml;
 
+    const validateJiraFields = () => {
+        const projectKey = dom.jiraProjectKey.value.trim();
+        const folderName = dom.jiraFolderName.value.trim();
+        const configElement = dom.jiraConfigurationElement.value.trim();
+        const testType = dom.jiraTestType.value.trim();
+
+        const errors = [];
+        if (!projectKey) errors.push('Project Key');
+        if (!folderName) errors.push('Название папки');
+        if (!configElement) errors.push('АС(КЭ)');
+        if (!testType) errors.push('Вид тестирования');
+
+        return {
+            valid: errors.length === 0,
+            errors: errors
+        };
+    };
+
     const sendJira = async () => {
         // Защита от повторных кликов
         if (state.isSendingJira) return;
+
+        const validation = validateJiraFields();
+        if (!validation.valid) {
+            const errorMsg = `Заполните обязательные поля:\n• ${validation.errors.join('\n• ')}`;
+            return alert(errorMsg);
+        }
 
         const projectKey = dom.jiraProjectKey.value.trim();
         const folderName = dom.jiraFolderName.value.trim();
         const settings = getSettings();
 
-        if (!projectKey) return alert('Укажите Project Key');
-        if (!folderName) return alert('Укажите название папки');
         if (!settings.jiraUrl) return alert('Укажите URL Langflow для отправки в JIRA');
 
         const selected = Array.from($('.card-checkbox:checked')).map(cb => state.testsData[parseInt(cb.dataset.idx)]);
@@ -89,14 +111,25 @@
                 dom.jiraStatus.appendChild(item);
             });
         } finally {
-            dom.btnSendJira.disabled = false;
-            dom.btnSendJira.textContent = `📤 Отправить выбранные тесты в Jira ${jiraType}`;
             state.isSendingJira = false;
+            updateJiraSendButtonState();
+            dom.btnSendJira.textContent = `📤 Отправить выбранные тесты в Jira ${jiraType}`;
+        }
+    };
+
+    const updateJiraSendButtonState = () => {
+        const validation = validateJiraFields();
+        const hasSelectedTests = Array.from($('.card-checkbox:checked')).length > 0;
+
+        if (dom.btnSendJira) {
+            dom.btnSendJira.disabled = !validation.valid || !hasSelectedTests || state.isSendingJira;
         }
     };
 
     TG.jira = {
-        sendJira
+        sendJira,
+        validateJiraFields,
+        updateJiraSendButtonState
     };
 
 })(window.TestGen);

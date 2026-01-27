@@ -10,7 +10,7 @@
     const { addFeature, removeFeature } = features;
     const { generate, generateFromChecks } = generation;
     const { toggleAll, selectAll, updateSelection } = selection;
-    const { sendJira } = jira;
+    const { sendJira, updateJiraSendButtonState } = jira;
     const { sendAgentMsg } = agent;
     const { copy } = results;
 
@@ -101,6 +101,7 @@
             if (e.target.classList.contains('card-checkbox')) {
                 e.target.closest('.card').classList.toggle('selected', e.target.checked);
                 updateSelection();
+                updateJiraSendButtonState();
             }
             // Import settings file
             if (e.target.id === 'importSettingsFile') {
@@ -122,6 +123,12 @@
                 } else if (e.target.closest('.container')) {
                     // Auto-save only for main form inputs
                     storage.saveForm();
+                }
+
+                // Update JIRA button state when JIRA fields change
+                const jiraFieldIds = ['jiraProjectKey', 'jiraFolderName', 'jiraConfigurationElement', 'jiraTestType'];
+                if (jiraFieldIds.includes(e.target.id)) {
+                    updateJiraSendButtonState();
                 }
             }
         });
