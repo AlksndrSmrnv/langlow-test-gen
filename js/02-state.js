@@ -8,7 +8,7 @@
         saveTimeout: null,
         statusInterval: null,
         currentAbortController: null,
-        agentState: { selectedIndex: null, messages: [], processing: false },
+        agentState: { selectedIndices: [], messages: [], processing: false },
         settingsChanged: false,
         originalSettings: null,
         isGenerating: false, // Защита от повторных кликов на генерацию
