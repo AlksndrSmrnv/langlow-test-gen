@@ -297,6 +297,25 @@ label {
     font-weight: 500;
 }
 
+.required-marker {
+    color: var(--error);
+    font-weight: 600;
+    margin-left: 2px;
+}
+
+.jira-required-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
+    border-radius: var(--radius);
+    color: var(--error-text);
+    font-size: 0.875em;
+    margin-bottom: 16px;
+}
+
 input,
 select,
 textarea {

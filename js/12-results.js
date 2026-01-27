@@ -95,6 +95,11 @@
         }
 
         dom.resultSection.classList.add('active');
+
+        // Update JIRA button state after showing results (late binding to avoid module load order issues)
+        if (TG.jira && TG.jira.updateJiraSendButtonState) {
+            TG.jira.updateJiraSendButtonState();
+        }
     };
 
     const showPlainText = text => {
