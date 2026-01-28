@@ -660,6 +660,10 @@ textarea::placeholder {
     user-select: none;
 }
 
+.card.check-card .card-header-left {
+    cursor: default;
+}
+
 .card-header-left:hover .card-id {
     background: var(--primary-hover);
 }
@@ -697,6 +701,42 @@ textarea::placeholder {
     font-weight: bold;
 }
 
+.check-card-checkbox {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    appearance: none;
+    border-radius: 8px;
+    border: 2px solid var(--warning);
+    background: linear-gradient(180deg, #ffffff 0%, #fff7d6 100%);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(245, 158, 11, 0.25);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.check-card-checkbox:hover {
+    border-color: var(--warning-text);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 3px 8px rgba(245, 158, 11, 0.35);
+}
+
+.check-card-checkbox:checked {
+    background: var(--warning);
+    border-color: var(--warning);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(245, 158, 11, 0.45);
+}
+
+.check-card-checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+}
+
 .card-id {
     background: var(--primary);
     color: white;
@@ -718,6 +758,10 @@ textarea::placeholder {
 
 .card.collapsed .card-id::after {
     transform: rotate(-90deg);
+}
+
+.card.check-card .card-id::after {
+    content: none;
 }
 
 .card-id.warning {
@@ -844,6 +888,10 @@ textarea::placeholder {
     border-radius: var(--radius-lg);
     border: 1px solid var(--warning-border);
     margin-bottom: 24px;
+}
+
+#additionalChecksSection {
+    margin-top: 32px;
 }
 
 .additional-checks-title {
@@ -1042,6 +1090,7 @@ textarea::placeholder {
 .agent-chat {
     display: none;
     margin-top: 32px;
+    margin-bottom: 32px;
     background: var(--bg-white);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
@@ -1077,21 +1126,6 @@ textarea::placeholder {
     margin: 4px 0 0;
     font-size: 0.875em;
     opacity: 0.9;
-}
-
-/* Agent Chat Alpha Warning */
-.agent-chat-alpha-warning {
-    margin-top: 10px;
-    padding: 8px 14px;
-    background: rgba(255, 200, 0, 0.25);
-    border: 1px solid rgba(255, 200, 0, 0.4);
-    border-radius: var(--radius);
-    font-size: 0.875em;
-    font-weight: 600;
-    text-align: center;
-    color: #fff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    letter-spacing: 0.3px;
 }
 
 .agent-chat-body {
