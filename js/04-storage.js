@@ -116,7 +116,11 @@
              'jiraConnectionUrlS', 'jiraConnectionTokenS',
              'confluenceToken', 'jiraProjectKey', 'jiraFolderName',
              'jiraConfigurationElement', 'jiraTestType']
-                .forEach(f => { if (data[f] && dom[f]) dom[f].value = data[f]; });
+                .forEach(f => {
+                    if (data[f] !== undefined && dom[f]) {
+                        dom[f].value = data[f];
+                    }
+                });
 
             if (data.jiraType !== undefined && dom.jiraTypeToggle) {
                 dom.jiraTypeToggle.checked = data.jiraType === 'S';
