@@ -14,10 +14,12 @@
 
         indices.forEach(idx => {
             const test = state.testsData[idx];
+            if (!test) return;
             // Escape CDATA end sequence to prevent breaking CDATA section
             const escapedContent = test.content.replace(/\]\]>/g, ']]]]><![CDATA[>');
-            xml += `    <test id="${escapeHtml(test.id)}" index="${idx}">\n`;
-            xml += `      <content><![CDATA[${escapedContent}]]></content>\n`;
+            const safeId = escapeHtml(test.id || `Тест ${idx + 1}`);
+            xml += `    <test id="${safeId}" index="${idx}">\n`;
+            xml += `      <![CDATA[${escapedContent}]]>\n`;
             xml += '    </test>\n';
         });
 
@@ -30,6 +32,26 @@
 
         // Helper to unescape CDATA end sequences
         const unescapeContent = (content) => content.replace(/\]\]\]\]><!\[CDATA\[>/g, ']]>');
+        const parseIndex = (value) => {
+            const parsed = parseInt(value, 10);
+            return Number.isFinite(parsed) ? parsed : null;
+        };
+        const extractAttr = (attrs, name) => {
+            if (!attrs) return null;
+            const re = new RegExp(`${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, 'i');
+            const match = attrs.match(re);
+            return match ? (match[1] || match[2]) : null;
+        };
+        const pushTest = (index, id, content) => {
+            if (!content) return;
+            const trimmed = content.trim();
+            if (!trimmed) return;
+            updatedTests.push({
+                index: Number.isFinite(index) ? index : null,
+                id: id || null,
+                content: unescapeContent(trimmed)
+            });
+        };
 
         try {
             // Try DOMParser first
@@ -43,30 +65,39 @@
 
             const testNodes = doc.querySelectorAll('test');
             testNodes.forEach(node => {
-                const index = parseInt(node.getAttribute('index'));
+                const index = parseIndex(node.getAttribute('index'));
+                const id = node.getAttribute('id') || node.getAttribute('name') || null;
                 const contentNode = node.querySelector('content');
-
-                if (!isNaN(index) && contentNode) {
-                    updatedTests.push({
-                        index: index,
-                        content: unescapeContent(contentNode.textContent.trim())
-                    });
-                }
+                const content = contentNode ? contentNode.textContent : node.textContent;
+                pushTest(index, id, content);
             });
-
+            if (updatedTests.length) return updatedTests;
         } catch (e) {
             console.warn('DOMParser failed, trying regex fallback', e);
+        }
 
-            // Regex fallback for malformed XML
-            const testRegex = /<test[^>]*index="(\d+)"[^>]*>[\s\S]*?<content><!\[CDATA\[([\s\S]*?)\]\]><\/content>[\s\S]*?<\/test>/gi;
-            let match;
+        // Regex fallback for malformed XML or unexpected structure
+        const testRegex = /<test\b([^>]*)>([\s\S]*?)<\/test>/gi;
+        let match;
 
-            while ((match = testRegex.exec(xmlString)) !== null) {
-                updatedTests.push({
-                    index: parseInt(match[1]),
-                    content: unescapeContent(match[2].trim())
-                });
+        while ((match = testRegex.exec(xmlString)) !== null) {
+            const attrs = match[1] || '';
+            const body = match[2] || '';
+            const index = parseIndex(extractAttr(attrs, 'index'));
+            const id = extractAttr(attrs, 'id') || extractAttr(attrs, 'name');
+
+            let content = '';
+            const contentMatch = body.match(/<content[^>]*>([\s\S]*?)<\/content>/i);
+            if (contentMatch) {
+                const contentBody = contentMatch[1] || '';
+                const cdataMatch = contentBody.match(/<!\[CDATA\[([\s\S]*?)\]\]>/i);
+                content = cdataMatch ? cdataMatch[1] : contentBody.replace(/<[^>]+>/g, '');
+            } else {
+                const cdataMatch = body.match(/<!\[CDATA\[([\s\S]*?)\]\]>/i);
+                content = cdataMatch ? cdataMatch[1] : body.replace(/<[^>]+>/g, '');
             }
+
+            pushTest(index, id, content);
         }
 
         return updatedTests;
@@ -138,25 +169,57 @@
                 throw new Error('Не удалось распарсить ответ от агента');
             }
 
+            const selectedIndices = [...state.agentState.selectedIndices];
+            const selectedSet = new Set(selectedIndices);
+            const idToIndices = new Map();
+            selectedIndices.forEach(idx => {
+                const id = state.testsData[idx]?.id;
+                if (!id) return;
+                if (!idToIndices.has(id)) idToIndices.set(id, []);
+                idToIndices.get(id).push(idx);
+            });
+
             let successCount = 0;
-            updatedTests.forEach(({ index, content }) => {
-                if (state.testsData[index]) {
-                    state.testsData[index].content = content;
-                    updateCard(index, content);
+            updatedTests.forEach(({ index, id, content }, order) => {
+                let targetIdx = Number.isFinite(index) ? index : null;
+
+                if (targetIdx === null && id && idToIndices.has(id)) {
+                    const list = idToIndices.get(id);
+                    targetIdx = list.shift();
+                    if (!list.length) idToIndices.delete(id);
+                }
+
+                if (targetIdx === null && selectedIndices[order] !== undefined) {
+                    targetIdx = selectedIndices[order];
+                }
+
+                if (targetIdx !== null && selectedSet.has(targetIdx) && state.testsData[targetIdx]) {
+                    state.testsData[targetIdx].content = content;
+                    updateCard(targetIdx, content);
                     successCount++;
                 }
             });
 
+            if (successCount === 0) {
+                throw new Error('Не удалось сопоставить отредактированные тесты с выбранными');
+            }
+
             // Show count of updated tests
+            const totalSelected = selectedIndices.length;
             const testWord = plural(successCount, ['тест', 'теста', 'тестов']);
-            addMessage(`Успешно обновлено ${successCount} ${testWord}`, false);
+            const totalWord = plural(totalSelected, ['тест', 'теста', 'тестов']);
+            const message = successCount === totalSelected
+                ? `Успешно обновлено ${successCount} ${testWord}`
+                : `Обновлено ${successCount} из ${totalSelected} ${totalWord}`;
+            addMessage(message, false);
 
             // Update history with current chat messages
             updateCurrentHistoryWithChat();
 
         } catch (e) {
             console.error('Agent error:', e);
-            addMessage(`Ошибка: ${e.message}`, false);
+            const errMsg = e && e.message ? e.message : 'Неизвестная ошибка';
+            addMessage(`Ошибка: ${errMsg}`, false);
         } finally {
             dom.agentChatLoader.classList.remove('active');
             dom.agentChatSendBtn.disabled = false;
