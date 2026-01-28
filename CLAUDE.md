@@ -48,10 +48,10 @@ Web application for generating integration tests with Russian language interface
 - Displays as interactive, collapsible cards
 
 #### 2. Agent Chat (AI Test Editing)
-- Select exactly ONE test via checkbox
+- Select one or multiple tests via checkboxes
 - Chat interface to request modifications
 - Sends test content + modification request to agent endpoint
-- Updates test card in real-time with AI response
+- Updates test cards in real-time with AI response
 
 #### 3. JIRA Export
 - Select multiple tests via checkboxes
@@ -99,7 +99,7 @@ Form inputs → buildXML() → XML payload → Langflow API →
 
 **Agent Chat Flow:**
 ```
-Select 1 test → User message → Prompt construction →
+Select tests → User message → Prompt construction →
 → Agent endpoint → AI response → updateCard() →
 → Real-time card update
 ```
