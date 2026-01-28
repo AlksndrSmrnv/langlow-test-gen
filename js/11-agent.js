@@ -179,30 +179,54 @@
                 idToIndices.get(id).push(idx);
             });
 
-            let successCount = 0;
-            updatedTests.forEach(({ index, id, content }, order) => {
+            if (updatedTests.length !== selectedIndices.length) {
+                throw new Error('Ответ агента должен содержать изменения для всех выбранных тестов');
+            }
+
+            const usedTargets = new Set();
+            const updates = [];
+
+            updatedTests.forEach(({ index, id, content }) => {
                 let targetIdx = Number.isFinite(index) ? index : null;
 
-                if (targetIdx === null && id && idToIndices.has(id)) {
+                if (targetIdx === null && id) {
                     const list = idToIndices.get(id);
-                    targetIdx = list.shift();
-                    if (!list.length) idToIndices.delete(id);
+                    if (!list || list.length === 0) {
+                        throw new Error('Ответ агента содержит неизвестный id теста');
+                    }
+                    if (list.length > 1) {
+                        throw new Error('Ответ агента содержит неуникальный id теста');
+                    }
+                    targetIdx = list[0];
                 }
 
-                if (targetIdx === null && selectedIndices[order] !== undefined) {
-                    targetIdx = selectedIndices[order];
+                if (targetIdx === null) {
+                    throw new Error('Ответ агента должен содержать index или id для каждого теста');
+                }
+                if (!selectedSet.has(targetIdx)) {
+                    throw new Error('Ответ агента содержит тест вне выбранных');
+                }
+                if (usedTargets.has(targetIdx)) {
+                    throw new Error('Ответ агента содержит дублирующийся index');
+                }
+                if (!state.testsData[targetIdx]) {
+                    throw new Error('Ответ агента содержит несуществующий index теста');
                 }
 
-                if (targetIdx !== null && selectedSet.has(targetIdx) && state.testsData[targetIdx]) {
-                    state.testsData[targetIdx].content = content;
-                    updateCard(targetIdx, content);
-                    successCount++;
-                }
+                usedTargets.add(targetIdx);
+                updates.push({ index: targetIdx, content });
             });
 
-            if (successCount === 0) {
-                throw new Error('Не удалось сопоставить отредактированные тесты с выбранными');
+            if (usedTargets.size !== selectedIndices.length) {
+                throw new Error('Ответ агента не содержит правки для всех выбранных тестов');
             }
+
+            let successCount = 0;
+            updates.forEach(({ index, content }) => {
+                state.testsData[index].content = content;
+                updateCard(index, content);
+                successCount++;
+            });
 
             // Show count of updated tests
             const totalSelected = selectedIndices.length;
