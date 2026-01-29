@@ -35,6 +35,21 @@
         format: state.dom.apiFormat?.value || 'standard'
     });
 
+    const validateRequiredSettings = () => {
+        const settings = getSettings();
+        const missing = [];
+
+        if (!settings.url) missing.push('URL для генерации тестов');
+        if (!settings.agentUrl) missing.push('URL для чата с агентом');
+        if (!settings.jiraUrl) missing.push('URL для отправки в JIRA');
+        if (!settings.apiKey) missing.push('API-ключ');
+
+        return {
+            valid: missing.length === 0,
+            missing: missing
+        };
+    };
+
     const buildBody = (data, format, sid) => {
         const base = { output_type: 'chat', input_type: 'chat', session_id: sid };
         if (format === 'inputs') return { ...base, inputs: { input_value: data } };
@@ -69,6 +84,7 @@
         plural,
         sessionId,
         getSettings,
+        validateRequiredSettings,
         buildBody,
         headers,
         headersXml,

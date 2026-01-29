@@ -154,6 +154,25 @@
             </div>
         </div>
 
+        <!-- Settings Warning Modal -->
+        <div class="settings-confirm-overlay" id="settingsWarningOverlay" style="display: none;">
+            <div class="settings-confirm-dialog">
+                <div class="settings-confirm-header">
+                    <h3>⚠️ Настройки не загружены</h3>
+                </div>
+                <div class="settings-confirm-body">
+                    <p>Для генерации тестов необходимо импортировать настройки.</p>
+                    <p style="margin-top: 12px;">Отсутствуют следующие настройки:</p>
+                    <ul id="settingsWarningList" style="margin-top: 8px; padding-left: 20px; color: var(--error-text);"></ul>
+                    <p style="margin-top: 16px; font-weight: 500;">Импортируйте файл с настройками через меню настроек.</p>
+                </div>
+                <div class="settings-confirm-footer">
+                    <button class="btn btn-outline" id="settingsWarningClose">Отмена</button>
+                    <button class="btn btn-primary" id="settingsWarningOpenSettings">⚙️ Открыть настройки</button>
+                </div>
+            </div>
+        </div>
+
         <button class="btn btn-primary btn-generate" id="generateBtn">🚀 Сгенерировать тесты</button>
 
         <!-- Loader -->

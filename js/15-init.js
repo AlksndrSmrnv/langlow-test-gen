@@ -5,10 +5,10 @@
     const { dom } = state;
     const { domIds } = config;
     const { loadForm, updateRemoveBtns, updateJiraConnection } = storage;
-    const { openModal, closeModalWithoutSave, saveSettingsAndClose, closeModal, exportSettings, importSettings, handleImportFile, toggleTokenVisibility } = modal;
+    const { openModal, closeModalWithoutSave, saveSettingsAndClose, closeModal, exportSettings, importSettings, handleImportFile, toggleTokenVisibility, showSettingsWarning, closeSettingsWarning, openSettingsFromWarning } = modal;
     const { openHistoryModal, closeHistoryModal, loadGenerationFromHistory, deleteFromHistory } = history;
     const { addFeature, removeFeature } = features;
-    const { generate, generateFromChecks } = generation;
+    const { generate, generateFromChecks, updateGenerateButtonState } = generation;
     const { toggleAll, selectAll, updateSelection } = selection;
     const { sendJira, updateJiraSendButtonState } = jira;
     const { sendAgentMsg } = agent;
@@ -23,8 +23,11 @@
         // loadForm calls it if features exist. If not, we might want to ensure at least one exists?
         // The original code called updateRemoveBtns() after loadForm().
         if (TG.features && TG.features.updateRemoveBtns) TG.features.updateRemoveBtns();
-        
+
         updateJiraConnection();
+
+        // Check settings state on page load and update button
+        updateGenerateButtonState();
 
         // Event delegation
         document.addEventListener('click', e => {
@@ -41,6 +44,10 @@
             if (t.id === 'settingsModal' && t === e.target) closeModal(); // Click on backdrop
             if (t.id === 'exportSettingsBtn') exportSettings();
             if (t.id === 'importSettingsBtn') importSettings();
+
+            // Settings warning modal controls
+            if (t.id === 'settingsWarningClose') closeSettingsWarning();
+            if (t.id === 'settingsWarningOpenSettings') openSettingsFromWarning();
 
             // History
             if (historyBtn) openHistoryModal();

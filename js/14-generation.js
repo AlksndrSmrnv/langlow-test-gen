@@ -33,6 +33,14 @@
         if (state.isGenerating) return;
         state.isGenerating = true;
 
+        // VALIDATE SETTINGS FIRST
+        const validation = TG.utils.validateRequiredSettings();
+        if (!validation.valid) {
+            state.isGenerating = false;
+            TG.modal.showSettingsWarning(validation.missing);
+            return;
+        }
+
         // Abort previous request if exists
         if (state.currentAbortController) {
             state.currentAbortController.abort();
@@ -138,6 +146,13 @@
     const generateFromChecks = async () => {
         // Защита от повторных кликов
         if (state.isGenerating) return;
+
+        // VALIDATE SETTINGS FIRST
+        const validation = TG.utils.validateRequiredSettings();
+        if (!validation.valid) {
+            TG.modal.showSettingsWarning(validation.missing);
+            return;
+        }
 
         // Collect selected checks
         const selectedCheckboxes = Array.from($('.check-card-checkbox:checked'));
@@ -268,11 +283,27 @@
         }
     };
 
+    const updateGenerateButtonState = () => {
+        const validation = TG.utils.validateRequiredSettings();
+        const generateBtn = state.dom.generateBtn;
+        const generateFromChecksBtn = state.dom.generateFromChecksBtn;
+
+        if (generateBtn) {
+            generateBtn.disabled = !validation.valid;
+        }
+
+        // Only disable if button exists (might not be rendered yet)
+        if (generateFromChecksBtn) {
+            generateFromChecksBtn.disabled = !validation.valid;
+        }
+    };
+
     TG.generation = {
         startLoading,
         stopLoading,
         generate,
-        generateFromChecks
+        generateFromChecks,
+        updateGenerateButtonState
     };
 
 })(window.TestGen);

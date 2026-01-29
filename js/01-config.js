@@ -29,6 +29,7 @@
     const domIds = [
         'settingsModal', 'settingsBtn', 'closeSettingsBtn', 'saveSettingsBtn',
         'exportSettingsBtn', 'importSettingsBtn', 'importSettingsFile',
+        'settingsWarningOverlay', 'settingsWarningList', 'settingsWarningClose', 'settingsWarningOpenSettings',
         'historyModal', 'historyBtn', 'closeHistoryBtn', 'historyList',
         'featureList', 'addFeatureBtn', 'checklistUrl', 'langflowUrl',
         'agentChatLangflowUrl', 'jiraLangflowUrl',
