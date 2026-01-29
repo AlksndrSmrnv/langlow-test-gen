@@ -12,10 +12,6 @@
             jiraLangflowUrl: dom.jiraLangflowUrl.value.trim(),
             apiKey: dom.apiKey.value.trim(),
             apiFormat: dom.apiFormat.value,
-            jiraConnectionUrlD: dom.jiraConnectionUrlD?.value.trim() || '',
-            jiraConnectionTokenD: dom.jiraConnectionTokenD?.value.trim() || '',
-            jiraConnectionUrlS: dom.jiraConnectionUrlS?.value.trim() || '',
-            jiraConnectionTokenS: dom.jiraConnectionTokenS?.value.trim() || '',
             jiraType: dom.jiraTypeToggle?.checked ? 'S' : 'D'
         };
     };
@@ -70,10 +66,6 @@
         data.jiraLangflowUrl = dom.jiraLangflowUrl.value.trim();
         data.apiKey = dom.apiKey.value.trim();
         data.apiFormat = dom.apiFormat.value;
-        data.jiraConnectionUrlD = dom.jiraConnectionUrlD?.value.trim() || '';
-        data.jiraConnectionTokenD = dom.jiraConnectionTokenD?.value.trim() || '';
-        data.jiraConnectionUrlS = dom.jiraConnectionUrlS?.value.trim() || '';
-        data.jiraConnectionTokenS = dom.jiraConnectionTokenS?.value.trim() || '';
         data.jiraType = dom.jiraTypeToggle?.checked ? 'S' : 'D';
 
         localStorage.setItem(config.STORAGE_KEY, JSON.stringify(data));

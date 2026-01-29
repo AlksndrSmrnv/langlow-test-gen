@@ -50,11 +50,11 @@
         dom.jiraStatus.className = 'jira-status';
 
         const jiraType = dom.jiraTypeToggle?.checked ? 'S' : 'D';
+        // Convert jiraType to full name: D -> Delta, S -> Sigma
+        const jiraTypeName = jiraType === 'D' ? 'Delta' : 'Sigma';
 
         try {
-            // Get Jira connection settings
-            const jiraConnectionUrl = dom.jiraConnectionUrl?.value.trim() || '';
-            const jiraConnectionToken = dom.jiraConnectionToken?.value.trim() || '';
+            // Get Jira metadata settings
             const jiraConfigurationElement = dom.jiraConfigurationElement?.value.trim() || '';
             const jiraTestType = dom.jiraTestType?.value.trim() || '';
 
@@ -66,8 +66,7 @@
                         folderName,
                         test.id,
                         test.content,
-                        jiraConnectionUrl,
-                        jiraConnectionToken,
+                        jiraTypeName,
                         jiraConfigurationElement,
                         jiraTestType
                     );

@@ -99,36 +99,6 @@
                         </select>
                         <p class="info-text">Выберите формат в зависимости от версии Langflow</p>
                     </div>
-                    <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
-                    <h3 style="margin-bottom: 15px; font-size: 1em; color: var(--text-secondary);">🔗 Подключение к Jira D</h3>
-                    <div class="input-group">
-                        <label for="jiraConnectionUrlD">URL Jira D</label>
-                        <input type="url" id="jiraConnectionUrlD" placeholder="https://your-domain.atlassian.net">
-                        <p class="info-text">Базовый URL вашего Jira D</p>
-                    </div>
-                    <div class="input-group">
-                        <label for="jiraConnectionTokenD">Токен Jira D</label>
-                        <div class="token-input-wrapper">
-                            <input type="password" id="jiraConnectionTokenD" placeholder="Ваш API токен Jira D">
-                            <button type="button" class="btn-toggle-token" data-target="jiraConnectionTokenD" title="Показать/скрыть">👁️</button>
-                        </div>
-                        <p class="info-text">API токен для авторизации в Jira D</p>
-                    </div>
-                    <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
-                    <h3 style="margin-bottom: 15px; font-size: 1em; color: var(--text-secondary);">🔗 Подключение к Jira S</h3>
-                    <div class="input-group">
-                        <label for="jiraConnectionUrlS">URL Jira S</label>
-                        <input type="url" id="jiraConnectionUrlS" placeholder="https://your-domain.atlassian.net">
-                        <p class="info-text">Базовый URL вашего Jira S</p>
-                    </div>
-                    <div class="input-group">
-                        <label for="jiraConnectionTokenS">Токен Jira S</label>
-                        <div class="token-input-wrapper">
-                            <input type="password" id="jiraConnectionTokenS" placeholder="Ваш API токен Jira S">
-                            <button type="button" class="btn-toggle-token" data-target="jiraConnectionTokenS" title="Показать/скрыть">👁️</button>
-                        </div>
-                        <p class="info-text">API токен для авторизации в Jira S</p>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <div class="modal-footer-left">
@@ -255,10 +225,6 @@
                         </div>
                         <p class="info-text">Переключите между Jira D и Jira S</p>
                     </div>
-
-                    <!-- Скрытые поля для хранения текущих значений -->
-                    <input type="hidden" id="jiraConnectionUrl">
-                    <input type="hidden" id="jiraConnectionToken">
 
                     <div class="jira-required-info">
                         <span class="required-marker">*</span> — обязательные поля для отправки тестов в JIRA

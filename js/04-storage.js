@@ -21,10 +21,6 @@
                 jiraLangflowUrl: dom.jiraLangflowUrl.value.trim(),
                 apiKey: dom.apiKey.value.trim(),
                 apiFormat: dom.apiFormat.value,
-                jiraConnectionUrlD: dom.jiraConnectionUrlD?.value.trim() || '',
-                jiraConnectionTokenD: dom.jiraConnectionTokenD?.value.trim() || '',
-                jiraConnectionUrlS: dom.jiraConnectionUrlS?.value.trim() || '',
-                jiraConnectionTokenS: dom.jiraConnectionTokenS?.value.trim() || '',
                 jiraType: dom.jiraTypeToggle?.checked ? 'S' : 'D',
                 jiraProjectKey: dom.jiraProjectKey.value.trim(),
                 jiraFolderName: dom.jiraFolderName.value.trim(),
@@ -71,23 +67,15 @@
     };
 
     const updateJiraConnection = () => {
-        if (!dom.jiraConnectionUrl || !dom.jiraConnectionToken) return;
-
         const isJiraS = dom.jiraTypeToggle?.checked;
         const jiraType = isJiraS ? 'S' : 'D';
 
-        if (isJiraS) {
-            dom.jiraConnectionUrl.value = dom.jiraConnectionUrlS?.value.trim() || '';
-            dom.jiraConnectionToken.value = dom.jiraConnectionTokenS?.value.trim() || '';
-        } else {
-            dom.jiraConnectionUrl.value = dom.jiraConnectionUrlD?.value.trim() || '';
-            dom.jiraConnectionToken.value = dom.jiraConnectionTokenD?.value.trim() || '';
-        }
-
+        // Update button text to show selected instance
         if (dom.btnSendJira) {
             dom.btnSendJira.textContent = `📤 Отправить выбранные тесты в Jira ${jiraType}`;
         }
 
+        // Update visual labels for toggle
         updateJiraToggleLabels();
     };
 
@@ -111,8 +99,6 @@
 
             ['checklistUrl', 'langflowUrl', 'agentChatLangflowUrl', 'jiraLangflowUrl',
              'apiKey', 'apiFormat',
-             'jiraConnectionUrlD', 'jiraConnectionTokenD',
-             'jiraConnectionUrlS', 'jiraConnectionTokenS',
              'jiraProjectKey', 'jiraFolderName',
              'jiraConfigurationElement', 'jiraTestType']
                 .forEach(f => {
