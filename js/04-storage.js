@@ -132,11 +132,60 @@
         }
     };
 
+    const restoreRequestParams = (params) => {
+        try {
+            // Handle missing params - clear form
+            if (!params) {
+                if (dom.checklistUrl) {
+                    dom.checklistUrl.value = '';
+                }
+
+                if (dom.featureList) {
+                    dom.featureList.innerHTML = '';
+                    dom.featureList.appendChild(createFeatureItem(''));
+
+                    // Update remove buttons (late binding)
+                    if (TG.features && TG.features.updateRemoveBtns) {
+                        TG.features.updateRemoveBtns();
+                    }
+                }
+                return;
+            }
+
+            // Restore checklist URL
+            if (dom.checklistUrl) {
+                dom.checklistUrl.value = params.checklistUrl || '';
+            }
+
+            // Restore feature URLs
+            if (dom.featureList) {
+                dom.featureList.innerHTML = '';
+
+                if (params.features && Array.isArray(params.features) && params.features.length > 0) {
+                    params.features.forEach(url => {
+                        dom.featureList.appendChild(createFeatureItem(url || ''));
+                    });
+                } else {
+                    // If no features or empty array, create one empty field
+                    dom.featureList.appendChild(createFeatureItem(''));
+                }
+
+                // Update remove buttons visibility (late binding)
+                if (TG.features && TG.features.updateRemoveBtns) {
+                    TG.features.updateRemoveBtns();
+                }
+            }
+        } catch (e) {
+            console.error('Error restoring request params:', e);
+        }
+    };
+
     TG.storage = {
         showAutosave,
         saveForm,
         createFeatureItem,
         loadForm,
+        restoreRequestParams,
         updateJiraToggleLabels,
         updateJiraConnection
     };
