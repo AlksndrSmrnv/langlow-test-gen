@@ -143,8 +143,13 @@
         // Keyboard
         document.addEventListener('keydown', e => {
             if (e.key === 'Escape') {
-                // Check for confirm dialog first
-                const confirmDialog = document.querySelector('.settings-confirm-overlay');
+                // Close settings warning modal if it's visible
+                if (dom.settingsWarningOverlay && dom.settingsWarningOverlay.style.display !== 'none') {
+                    closeSettingsWarning();
+                    return;
+                }
+                // Check for confirm dialog (exclude static warning overlay)
+                const confirmDialog = document.querySelector('.settings-confirm-overlay:not(#settingsWarningOverlay)');
                 if (confirmDialog) {
                     confirmDialog.remove();
                     return;
