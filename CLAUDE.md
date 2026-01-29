@@ -42,8 +42,7 @@ Web application for generating integration tests with Russian language interface
 
 #### 1. Test Generation
 - User provides feature pages (Confluence URLs) and checklist URL
-- Builds XML request with optional Confluence credentials
-- Sends to Langflow generation endpoint
+- Builds XML request and sends to Langflow generation endpoint
 - Parses XML response to extract test cases and additional checks
 - Displays as interactive, collapsible cards
 
@@ -137,7 +136,7 @@ Generate tests → saveToHistory() (with current agent chat) → localStorage �
 ## Key Functions by Module
 
 ### TG.xml (07-xml.js)
-- `buildXML()` - Constructs XML request from form inputs with Confluence credentials
+- `buildXML()` - Constructs XML request from form inputs
 - `buildChecksXML()` - Constructs XML for generating tests from selected additional checks
 - `buildJiraXML()` - Constructs XML for JIRA export with all test metadata
 - `parseXML()` - Two-tier parsing: DOMParser + regex fallback for malformed XML
@@ -231,10 +230,6 @@ Generate tests → saveToHistory() (with current agent chat) → localStorage �
 - **Jira S** - Secondary Jira instance credentials (URL + Token)
 - **Toggle Switch** - Switch between Jira D and Jira S for test export
 - All tokens support show/hide visibility toggle
-
-**Confluence Connection:**
-- **Confluence Token** - API token for accessing Confluence pages
-- Embedded in XML requests to fetch feature documentation
 
 **JIRA Test Metadata:**
 - **Project Key** - JIRA project identifier
@@ -335,8 +330,8 @@ Extracts:
 - Graceful degradation for partial responses
 
 **XML Generation:**
-- `buildXML()` - Standard test generation with features + checklist + confluence_token
-- `buildChecksXML()` - Generates tests from selected checks with constant checklist URL (`http://s.s/test`)
+- `buildXML()` - Standard test generation with features + checklist
+- `buildChecksXML()` - Generates tests from selected checks
 - `buildJiraXML()` - Creates JIRA export XML with test metadata and connection credentials
 
 ## UI Patterns

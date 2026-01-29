@@ -16,8 +16,7 @@
             jiraConnectionTokenD: dom.jiraConnectionTokenD?.value.trim() || '',
             jiraConnectionUrlS: dom.jiraConnectionUrlS?.value.trim() || '',
             jiraConnectionTokenS: dom.jiraConnectionTokenS?.value.trim() || '',
-            jiraType: dom.jiraTypeToggle?.checked ? 'S' : 'D',
-            confluenceToken: dom.confluenceToken?.value.trim() || ''
+            jiraType: dom.jiraTypeToggle?.checked ? 'S' : 'D'
         };
     };
 
@@ -44,7 +43,6 @@
                 dom.jiraTypeToggle.checked = state.originalSettings.jiraType === 'S';
                 updateJiraToggleLabels();
             }
-            if (dom.confluenceToken) dom.confluenceToken.value = state.originalSettings.confluenceToken;
             updateJiraConnection();
         }
         dom.settingsModal.classList.remove('active');
@@ -77,7 +75,6 @@
         data.jiraConnectionUrlS = dom.jiraConnectionUrlS?.value.trim() || '';
         data.jiraConnectionTokenS = dom.jiraConnectionTokenS?.value.trim() || '';
         data.jiraType = dom.jiraTypeToggle?.checked ? 'S' : 'D';
-        data.confluenceToken = dom.confluenceToken?.value.trim() || '';
 
         localStorage.setItem(config.STORAGE_KEY, JSON.stringify(data));
 

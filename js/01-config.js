@@ -37,7 +37,7 @@
         'jiraConnectionUrlD', 'jiraConnectionTokenD',
         'jiraConnectionUrlS', 'jiraConnectionTokenS',
         'jiraTypeToggle', 'jiraLabelD', 'jiraLabelS',
-        'confluenceToken', 'generateBtn', 'loader', 'loaderText',
+        'generateBtn', 'loader', 'loaderText',
         'loaderSubstatus', 'resultSection', 'testsSection', 'testsContainer',
         'testsCount', 'toggleAllBtn', 'jiraSection', 'selectedCount',
         'selectAllBtn', 'jiraProjectKey', 'jiraFolderName', 'jiraConfigurationElement', 'jiraTestType', 'btnSendJira',

@@ -26,7 +26,6 @@
                 jiraConnectionUrlS: dom.jiraConnectionUrlS?.value.trim() || '',
                 jiraConnectionTokenS: dom.jiraConnectionTokenS?.value.trim() || '',
                 jiraType: dom.jiraTypeToggle?.checked ? 'S' : 'D',
-                confluenceToken: dom.confluenceToken?.value.trim() || '',
                 jiraProjectKey: dom.jiraProjectKey.value.trim(),
                 jiraFolderName: dom.jiraFolderName.value.trim(),
                 jiraConfigurationElement: dom.jiraConfigurationElement?.value.trim() || '',
@@ -114,7 +113,7 @@
              'apiKey', 'apiFormat',
              'jiraConnectionUrlD', 'jiraConnectionTokenD',
              'jiraConnectionUrlS', 'jiraConnectionTokenS',
-             'confluenceToken', 'jiraProjectKey', 'jiraFolderName',
+             'jiraProjectKey', 'jiraFolderName',
              'jiraConfigurationElement', 'jiraTestType']
                 .forEach(f => {
                     if (data[f] !== undefined && dom[f]) {
