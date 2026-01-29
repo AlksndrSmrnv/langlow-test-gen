@@ -129,7 +129,7 @@
         return xml;
     };
 
-    const buildJiraXML = (projectKey, folderName, testName, testContent, jiraUrl, jiraToken, configurationElement, testType) => {
+    const buildJiraXML = (projectKey, folderName, testName, testContent, jiraType, configurationElement, testType) => {
         let xml = '<jira_export>\n';
         xml += '  <test>\n';
         xml += `    <projectKey>${escapeHtml(projectKey)}</projectKey>\n`;
@@ -139,8 +139,7 @@
         if (configurationElement) xml += `    <configurationElement>${escapeHtml(configurationElement)}</configurationElement>\n`;
         if (testType) xml += `    <testType>${escapeHtml(testType)}</testType>\n`;
         xml += '  </test>\n';
-        xml += `  <jiraConnectionUrl>${escapeHtml(jiraUrl)}</jiraConnectionUrl>\n`;
-        xml += `  <jiraConnectionToken>${escapeHtml(jiraToken)}</jiraConnectionToken>\n`;
+        xml += `  <jira>${escapeHtml(jiraType)}</jira>\n`;
         xml += '</jira_export>';
         return xml;
     };
