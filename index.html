@@ -64,25 +64,25 @@
                     <button class="btn btn-icon close-btn" id="closeSettingsBtn">✕</button>
                 </div>
                 <div class="modal-body">
-                    <div class="input-group">
+                    <div class="input-group langflow-hidden">
                         <label for="langflowUrl">URL Langflow для генерации тестов</label>
                         <input type="url" id="langflowUrl"
                             placeholder="http://localhost:7860/api/v1/run/GENERATION_FLOW_ID">
                         <p class="info-text">Endpoint для генерации тестов</p>
                     </div>
-                    <div class="input-group">
+                    <div class="input-group langflow-hidden">
                         <label for="agentChatLangflowUrl">URL Langflow для чата с агентом</label>
                         <input type="url" id="agentChatLangflowUrl"
                             placeholder="http://localhost:7860/api/v1/run/AGENT_FLOW_ID">
                         <p class="info-text">Endpoint для редактирования тестов через чат</p>
                     </div>
-                    <div class="input-group">
+                    <div class="input-group langflow-hidden">
                         <label for="jiraLangflowUrl">URL Langflow для отправки в JIRA</label>
                         <input type="url" id="jiraLangflowUrl"
                             placeholder="http://localhost:7860/api/v1/run/JIRA_FLOW_ID">
                         <p class="info-text">Endpoint для отправки тестов в JIRA</p>
                     </div>
-                    <div class="input-group">
+                    <div class="input-group langflow-hidden">
                         <label for="apiKey">API Key</label>
                         <div class="token-input-wrapper">
                             <input type="password" id="apiKey" placeholder="Ваш API ключ">
@@ -90,7 +90,7 @@
                         </div>
                         <p class="info-text">Оставьте пустым, если не требуется авторизация</p>
                     </div>
-                    <div class="input-group">
+                    <div class="input-group langflow-hidden">
                         <label for="apiFormat">Формат API</label>
                         <select id="apiFormat">
                             <option value="standard">Стандартный (input_value)</option>
