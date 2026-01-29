@@ -91,6 +91,11 @@
                 // Set this as the current active history item
                 state.currentHistoryId = id;
 
+                // Restore request parameters to form (late binding)
+                if (TG.storage && TG.storage.restoreRequestParams) {
+                    TG.storage.restoreRequestParams(item.params);
+                }
+
                 // Late binding for results module
                 TG.results.showResults(item.data);
 
