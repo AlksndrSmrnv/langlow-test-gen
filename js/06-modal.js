@@ -83,6 +83,11 @@
         state.settingsChanged = false;
         state.originalSettings = null;
         showAutosave();
+
+        // Update button state after settings change
+        if (TG.generation && TG.generation.updateGenerateButtonState) {
+            TG.generation.updateGenerateButtonState();
+        }
     };
 
     const showSettingsConfirmDialog = () => {
@@ -169,6 +174,11 @@
 
                 alert('Настройки успешно импортированы!');
                 showAutosave();
+
+                // Update button state after import
+                if (TG.generation && TG.generation.updateGenerateButtonState) {
+                    TG.generation.updateGenerateButtonState();
+                }
             } catch (e) {
                 console.error('Import error:', e);
                 alert('Ошибка импорта настроек: некорректный формат файла');
@@ -198,6 +208,32 @@
         }
     };
 
+    const showSettingsWarning = (missingSettings) => {
+        const overlay = state.dom.settingsWarningOverlay;
+        const list = state.dom.settingsWarningList;
+
+        // Clear and populate missing settings list
+        list.innerHTML = '';
+        missingSettings.forEach(setting => {
+            const li = document.createElement('li');
+            li.textContent = setting;
+            list.appendChild(li);
+        });
+
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    };
+
+    const closeSettingsWarning = () => {
+        state.dom.settingsWarningOverlay.style.display = 'none';
+        document.body.style.overflow = '';
+    };
+
+    const openSettingsFromWarning = () => {
+        closeSettingsWarning();
+        openModal();
+    };
+
     TG.modal = {
         captureCurrentSettings,
         openModal,
@@ -208,7 +244,10 @@
         exportSettings,
         importSettings,
         handleImportFile,
-        toggleTokenVisibility
+        toggleTokenVisibility,
+        showSettingsWarning,
+        closeSettingsWarning,
+        openSettingsFromWarning
     };
 
 })(window.TestGen);
