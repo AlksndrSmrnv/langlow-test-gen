@@ -8,7 +8,7 @@
     const { openModal, closeModalWithoutSave, saveSettingsAndClose, closeModal, exportSettings, importSettings, handleImportFile, toggleTokenVisibility, showSettingsWarning, closeSettingsWarning, openSettingsFromWarning } = modal;
     const { openHistoryModal, closeHistoryModal, loadGenerationFromHistory, deleteFromHistory } = history;
     const { addFeature, removeFeature } = features;
-    const { generate, generateFromChecks, updateGenerateButtonState } = generation;
+    const { generate, generateFromChecks, regenerate, updateGenerateButtonState } = generation;
     const { toggleAll, selectAll, updateSelection } = selection;
     const { sendJira, updateJiraSendButtonState } = jira;
     const { sendAgentMsg } = agent;
@@ -75,6 +75,7 @@
             // Actions
             if (t.id === 'generateBtn' || t.closest('#generateBtn')) generate();
             if (t.id === 'retryGenerateBtn' || t.closest('#retryGenerateBtn')) generate();
+            if (t.id === 'regenerateBtn' || t.closest('#regenerateBtn')) regenerate();
             if (t.id === 'generateFromChecksBtn' || t.closest('#generateFromChecksBtn')) generateFromChecks();
             if (t.id === 'toggleAllBtn') toggleAll();
             if (t.id === 'selectAllBtn') selectAll();

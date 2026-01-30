@@ -36,7 +36,7 @@
         'agentChatLangflowUrl', 'jiraLangflowUrl',
         'apiKey', 'apiFormat',
         'jiraTypeToggle', 'jiraLabelD', 'jiraLabelS',
-        'generateBtn', 'loader', 'loaderText',
+        'generateBtn', 'regenerateBtn', 'loader', 'loaderText',
         'loaderSubstatus', 'resultSection', 'testsSection', 'testsContainer',
         'testsCount', 'toggleAllBtn', 'jiraSection', 'selectedCount',
         'selectAllBtn', 'jiraProjectKey', 'jiraFolderName', 'jiraConfigurationElement', 'jiraTestType', 'btnSendJira',

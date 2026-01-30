@@ -48,6 +48,12 @@
 
             dom.toggleAllBtn.textContent = ICONS.expand;
             dom.jiraSection.classList.add('active');
+
+            // Show regenerate button when tests are displayed
+            if (dom.regenerateBtn) {
+                dom.regenerateBtn.style.display = 'block';
+            }
+
             updateSelection();
         }
 
@@ -104,6 +110,9 @@
 
     const showPlainText = text => {
         dom.testsSection.style.display = 'none';
+        if (dom.regenerateBtn) {
+            dom.regenerateBtn.style.display = 'none';
+        }
         dom.additionalChecksSection.style.display = 'none';
         dom.errorSection.style.display = 'none';
         dom.plainTextSection.style.display = 'block';
