@@ -68,6 +68,7 @@
             $('.section').forEach(s => s.classList.add('collapsed'));
             dom.generateBtn.classList.add('hidden');
             dom.generateBtn.disabled = true;
+            if (dom.regenerateBtn) dom.regenerateBtn.disabled = true;
             if (dom.generateFromChecksBtn) dom.generateFromChecksBtn.disabled = true;
             dom.loader.classList.add('active');
             dom.resultSection.classList.remove('active');
@@ -136,6 +137,7 @@
         } finally {
             stopLoading();
             dom.generateBtn.disabled = false;
+            if (dom.regenerateBtn) dom.regenerateBtn.disabled = false;
             if (dom.generateFromChecksBtn) dom.generateFromChecksBtn.disabled = false;
             dom.loader.classList.remove('active');
             state.currentAbortController = null;
@@ -195,6 +197,7 @@
             $('.section').forEach(s => s.classList.add('collapsed'));
             dom.generateBtn.classList.add('hidden');
             dom.generateBtn.disabled = true;
+            if (dom.regenerateBtn) dom.regenerateBtn.disabled = true;
             if (dom.generateFromChecksBtn) dom.generateFromChecksBtn.disabled = true;
             dom.loader.classList.add('active');
             dom.resultSection.classList.remove('active');
@@ -276,6 +279,7 @@
         } finally {
             stopLoading();
             dom.generateBtn.disabled = false;
+            if (dom.regenerateBtn) dom.regenerateBtn.disabled = false;
             if (dom.generateFromChecksBtn) dom.generateFromChecksBtn.disabled = false;
             dom.loader.classList.remove('active');
             state.currentAbortController = null;
@@ -283,15 +287,32 @@
         }
     };
 
+    const regenerate = async () => {
+        // Переиспользуем generate() - она уже содержит всю необходимую логику:
+        // 1. Сохранение текущих тестов в историю (строки 54-66)
+        // 2. Очистку чата агента (строка 74 - resetAgent())
+        // 3. Использование данных формы (buildXML читает из формы)
+        // 4. Защиту флагом isGenerating (строки 33-34)
+        // 5. Обработку состояний загрузки и ошибок
+
+        await generate();
+    };
+
     const updateGenerateButtonState = () => {
         const validation = TG.utils.validateRequiredSettings();
         const generateBtn = state.dom.generateBtn;
+        const regenerateBtn = state.dom.regenerateBtn;
         const generateFromChecksBtn = state.dom.generateFromChecksBtn;
         const warningBanner = state.dom.settingsWarningBanner;
 
         // Update generate buttons
         if (generateBtn) {
             generateBtn.disabled = !validation.valid;
+        }
+
+        // Update regenerate button
+        if (regenerateBtn) {
+            regenerateBtn.disabled = !validation.valid;
         }
 
         // Only disable if button exists (might not be rendered yet)
@@ -314,6 +335,7 @@
         stopLoading,
         generate,
         generateFromChecks,
+        regenerate,
         updateGenerateButtonState
     };
 
