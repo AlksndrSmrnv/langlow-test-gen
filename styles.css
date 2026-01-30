@@ -221,6 +221,76 @@ h1 {
     overflow: hidden;
 }
 
+/* Settings warning banner */
+.settings-warning-banner {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 2px solid #ffc107;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px auto;
+    max-width: 600px;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+    animation: slideIn 0.3s ease-out;
+}
+
+.settings-warning-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.settings-warning-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.settings-warning-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.settings-warning-text strong {
+    display: block;
+    color: #856404;
+    font-size: 1em;
+    margin-bottom: 4px;
+}
+
+.settings-warning-text p {
+    margin: 0;
+    color: #856404;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.settings-warning-banner .btn-sm {
+    padding: 8px 16px;
+    font-size: 0.9em;
+    white-space: nowrap;
+    flex-shrink: 0;
+    background: white;
+    color: #856404;
+    border-color: #ffc107;
+}
+
+.settings-warning-banner .btn-sm:hover {
+    background: #ffc107;
+    color: white;
+    border-color: #ffc107;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .settings-warning-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .settings-warning-banner .btn-sm {
+        width: 100%;
+    }
+}
+
 /* Main Content */
 .main-content {
     display: flex;
