@@ -143,6 +143,18 @@
             </div>
         </div>
 
+        <!-- Warning banner for missing settings -->
+        <div class="settings-warning-banner" id="settingsWarningBanner" style="display: none;">
+            <div class="settings-warning-content">
+                <span class="settings-warning-icon">⚠️</span>
+                <div class="settings-warning-text">
+                    <strong>Настройки не загружены</strong>
+                    <p>Для генерации тестов необходимо импортировать настройки или заполнить обязательные поля.</p>
+                </div>
+                <button class="btn btn-outline btn-sm" id="settingsWarningBannerBtn">⚙️ Открыть настройки</button>
+            </div>
+        </div>
+
         <button class="btn btn-primary btn-generate" id="generateBtn">🚀 Сгенерировать тесты</button>
 
         <!-- Loader -->

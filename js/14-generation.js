@@ -287,7 +287,9 @@
         const validation = TG.utils.validateRequiredSettings();
         const generateBtn = state.dom.generateBtn;
         const generateFromChecksBtn = state.dom.generateFromChecksBtn;
+        const warningBanner = state.dom.settingsWarningBanner;
 
+        // Update generate buttons
         if (generateBtn) {
             generateBtn.disabled = !validation.valid;
         }
@@ -295,6 +297,15 @@
         // Only disable if button exists (might not be rendered yet)
         if (generateFromChecksBtn) {
             generateFromChecksBtn.disabled = !validation.valid;
+        }
+
+        // Show/hide warning banner
+        if (warningBanner) {
+            if (validation.valid) {
+                warningBanner.style.display = 'none';
+            } else {
+                warningBanner.style.display = 'block';
+            }
         }
     };
 

@@ -49,6 +49,9 @@
             if (t.id === 'settingsWarningClose') closeSettingsWarning();
             if (t.id === 'settingsWarningOpenSettings') openSettingsFromWarning();
 
+            // Settings warning banner button
+            if (t.id === 'settingsWarningBannerBtn') openModal();
+
             // History
             if (historyBtn) openHistoryModal();
             if (t.id === 'closeHistoryBtn' || t.id === 'historyModal') closeHistoryModal();

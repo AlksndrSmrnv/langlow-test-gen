@@ -30,6 +30,7 @@
         'settingsModal', 'settingsBtn', 'closeSettingsBtn', 'saveSettingsBtn',
         'exportSettingsBtn', 'importSettingsBtn', 'importSettingsFile',
         'settingsWarningOverlay', 'settingsWarningList', 'settingsWarningClose', 'settingsWarningOpenSettings',
+        'settingsWarningBanner', 'settingsWarningBannerBtn',
         'historyModal', 'historyBtn', 'closeHistoryBtn', 'historyList',
         'featureList', 'addFeatureBtn', 'checklistUrl', 'langflowUrl',
         'agentChatLangflowUrl', 'jiraLangflowUrl',
