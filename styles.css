@@ -58,10 +58,45 @@ body {
 /* Header */
 .header {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     margin-bottom: 32px;
     gap: 16px;
+}
+
+/* Header Left Section with Logo */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-logo {
+    width: 200px;
+    height: 200px;
+    border-radius: var(--radius-lg);
+    flex-shrink: 0;
+    object-fit: contain;
+    transition: all 0.2s ease;
+}
+
+.header-logo:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header-title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.header-title-block h1 {
+    margin-bottom: 0;
+    font-size: 2em;
+    font-weight: 700;
+    color: var(--text-dark);
+    letter-spacing: -0.02em;
 }
 
 h1 {
@@ -1409,7 +1444,13 @@ textarea::placeholder {
 /* Header Buttons */
 .header-buttons {
     display: flex;
-    gap: 8px;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.header-buttons .btn {
+    width: 100%;
+    min-width: 200px;
 }
 
 /* History Modal */
