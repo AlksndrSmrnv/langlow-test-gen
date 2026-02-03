@@ -76,10 +76,11 @@
                         headers: headers(settings.apiKey),
                         body: JSON.stringify(buildBody(xmlData, settings.format, sessionId()))
                     });
+                    const isSuccess = res.status === 201;
                     return {
-                        ok: res.ok,
+                        ok: isSuccess,
                         name: test.id,
-                        msg: res.ok ? 'Успешно отправлено' : `Ошибка ${res.status}: ${await res.text()}`
+                        msg: isSuccess ? 'Успешно отправлено' : `Ошибка ${res.status}: ${await res.text()}`
                     };
                 } catch (e) {
                     return { ok: false, name: test.id, msg: e.message };
