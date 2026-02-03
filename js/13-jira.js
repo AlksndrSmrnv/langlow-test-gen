@@ -76,7 +76,7 @@
                         headers: headers(settings.apiKey),
                         body: JSON.stringify(buildBody(xmlData, settings.format, sessionId()))
                     });
-                    const isSuccess = res.status === 201;
+                    const isSuccess = res.status >= 200 && res.status < 300;
                     return {
                         ok: isSuccess,
                         name: test.id,
