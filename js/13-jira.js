@@ -89,6 +89,24 @@
                     const raw = await res.text();
                     const trimmed = raw.trim();
 
+                    const stripMarkdownCodeBlock = text => {
+                        if (!text || typeof text !== 'string') return text;
+
+                        // Remove markdown code block markers (```json ... ``` or ``` ... ```)
+                        let cleaned = text.trim();
+
+                        // Check if starts with ``` (with optional language identifier)
+                        if (cleaned.startsWith('```')) {
+                            // Remove opening ```json or ```
+                            cleaned = cleaned.replace(/^```[a-z]*\n?/i, '');
+                            // Remove closing ```
+                            cleaned = cleaned.replace(/\n?```$/, '');
+                            cleaned = cleaned.trim();
+                        }
+
+                        return cleaned;
+                    };
+
                     const tryParseJson = text => {
                         const t = (text || '').trim();
                         if (!t || (!t.startsWith('{') && !t.startsWith('['))) {
@@ -145,7 +163,30 @@
                     // Parse extracted content (could be JSON string with status_code)
                     let statusInfo = null;
                     if (typeof extracted === 'string') {
-                        const extractedParsed = tryParseJson(extracted);
+                        // Remove markdown code block if present (Langflow wraps JSON in ```json ... ```)
+                        const cleaned = stripMarkdownCodeBlock(extracted);
+
+                        // Try to parse cleaned string
+                        let extractedParsed = tryParseJson(cleaned);
+
+                        // If failed and string looks escaped, try double-parse
+                        // (Langflow sometimes returns double-encoded JSON strings)
+                        if (!extractedParsed.value && cleaned.includes('\\')) {
+                            try {
+                                // First parse: remove one layer of encoding
+                                const onceParsed = JSON.parse(cleaned);
+
+                                // Second parse if still string
+                                if (typeof onceParsed === 'string') {
+                                    extractedParsed = tryParseJson(onceParsed);
+                                } else {
+                                    extractedParsed = { value: onceParsed, error: null, tried: true };
+                                }
+                            } catch (doubleParseError) {
+                                // Silent fail - will try fallback
+                            }
+                        }
+
                         if (extractedParsed.tried && extractedParsed.error && !parseError) {
                             parseError = extractedParsed.error;
                         }
