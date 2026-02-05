@@ -1,10 +1,11 @@
-(function(TG) {
+(function (TG) {
     'use strict';
 
     const { config, state, storage, modal, history, features, generation, selection, jira, agent, cards, results } = TG;
     const { dom } = state;
     const { domIds } = config;
-    const { loadForm, updateRemoveBtns, updateJiraConnection } = storage;
+    const { loadForm, updateJiraConnection } = storage;
+    const { updateRemoveBtns } = features;
     const { openModal, closeModalWithoutSave, saveSettingsAndClose, closeModal, exportSettings, importSettings, handleImportFile, toggleTokenVisibility, showSettingsWarning, closeSettingsWarning, openSettingsFromWarning } = modal;
     const { openHistoryModal, closeHistoryModal, loadGenerationFromHistory, deleteFromHistory } = history;
     const { addFeature, removeFeature } = features;

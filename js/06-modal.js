@@ -1,4 +1,4 @@
-(function(TG) {
+(function (TG) {
     'use strict';
 
     const { config, state, storage } = TG;
@@ -31,10 +31,6 @@
             dom.jiraLangflowUrl.value = state.originalSettings.jiraLangflowUrl;
             dom.apiKey.value = state.originalSettings.apiKey;
             dom.apiFormat.value = state.originalSettings.apiFormat;
-            if (dom.jiraConnectionUrlD) dom.jiraConnectionUrlD.value = state.originalSettings.jiraConnectionUrlD;
-            if (dom.jiraConnectionTokenD) dom.jiraConnectionTokenD.value = state.originalSettings.jiraConnectionTokenD;
-            if (dom.jiraConnectionUrlS) dom.jiraConnectionUrlS.value = state.originalSettings.jiraConnectionUrlS;
-            if (dom.jiraConnectionTokenS) dom.jiraConnectionTokenS.value = state.originalSettings.jiraConnectionTokenS;
             if (dom.jiraTypeToggle) {
                 dom.jiraTypeToggle.checked = state.originalSettings.jiraType === 'S';
                 updateJiraToggleLabels();

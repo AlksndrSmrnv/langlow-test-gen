@@ -1,4 +1,4 @@
-(function(TG) {
+(function (TG) {
     'use strict';
 
     const { config, state, utils, xml, results, agent, history } = TG;
@@ -51,19 +51,8 @@
             const xmlData = buildXML();
             const settings = getSettings();
 
-            // Save current generation with its chat history before generating new tests (deep clone)
-            if (state.testsData.length > 0 || state.checksData.length > 0) {
-                const currentData = {
-                    tests: state.testsData.map(t => ({...t})),
-                    checks: state.checksData.map(c => ({...c})),
-                    checksRaw: ''
-                };
-                const currentParams = {
-                    features: Array.from($('.feature-input')).map(i => i.value.trim()).filter(Boolean),
-                    checklistUrl: dom.checklistUrl?.value?.trim() || ''
-                };
-                saveToHistory(currentData, currentParams);
-            }
+            // NOTE: History is saved ONLY after successful generation (lines 111-116)
+            // to prevent duplicate entries and race conditions
 
             $('.section').forEach(s => s.classList.add('collapsed'));
             dom.generateBtn.classList.add('hidden');
@@ -180,19 +169,8 @@
             const xmlData = buildChecksXML(selectedChecks);
             const settings = getSettings();
 
-            // Save current generation with its chat history before generating new tests (deep clone)
-            if (state.testsData.length > 0 || state.checksData.length > 0) {
-                const currentData = {
-                    tests: state.testsData.map(t => ({...t})),
-                    checks: state.checksData.map(c => ({...c})),
-                    checksRaw: ''
-                };
-                const currentParams = {
-                    features: Array.from($('.feature-input')).map(i => i.value.trim()).filter(Boolean),
-                    checklistUrl: dom.checklistUrl?.value?.trim() || ''
-                };
-                saveToHistory(currentData, currentParams);
-            }
+            // NOTE: History is saved ONLY after successful generation (lines 237-248)
+            // to prevent duplicate entries and race conditions
 
             $('.section').forEach(s => s.classList.add('collapsed'));
             dom.generateBtn.classList.add('hidden');
