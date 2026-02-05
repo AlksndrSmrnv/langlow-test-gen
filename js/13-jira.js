@@ -111,11 +111,9 @@
                             const statusCode = Number(obj.status_code);
                             if (!Number.isNaN(statusCode)) {
                                 status = statusCode;
-                                // Extract errorMessages array if status is not success
-                                if (status !== 200 && status !== 201) {
-                                    const errArr = obj.errorMessages || (obj.result && obj.result.errorMessages) || [];
-                                    errorMessages = errArr.length > 0 ? errArr : null;
-                                }
+                                // Always extract errorMessages array, regardless of status
+                                const errArr = obj.errorMessages || (obj.result && obj.result.errorMessages) || [];
+                                errorMessages = errArr.length > 0 ? errArr : null;
                                 return { status, errorMessages };
                             }
                         }
@@ -125,11 +123,9 @@
                             const statusCode = Number(obj.result.status_code);
                             if (!Number.isNaN(statusCode)) {
                                 status = statusCode;
-                                // Extract errorMessages array if status is not success
-                                if (status !== 200 && status !== 201) {
-                                    const errArr = obj.result.errorMessages || [];
-                                    errorMessages = errArr.length > 0 ? errArr : null;
-                                }
+                                // Always extract errorMessages array, regardless of status
+                                const errArr = obj.result.errorMessages || [];
+                                errorMessages = errArr.length > 0 ? errArr : null;
                                 return { status, errorMessages };
                             }
                         }
@@ -140,14 +136,19 @@
                     const parsed = tryParseJson(trimmed);
                     let jsonData = parsed.value;
                     let parseError = parsed.error;
+
+                    // Primary: try to get status_code from direct JSON
                     let statusInfo = getStatusInfo(jsonData);
 
+                    // Secondary: if jsonData is string, parse and try again
                     if (!statusInfo && typeof jsonData === 'string') {
                         const nested = tryParseJson(jsonData);
                         if (!parseError && nested.tried && nested.error) parseError = nested.error;
                         statusInfo = getStatusInfo(nested.value);
                     }
 
+                    // Tertiary: only use extractResponse if no status_code found
+                    // (extractResponse may return r.result which loses status_code)
                     if (!statusInfo && jsonData && typeof jsonData === 'object') {
                         const extracted = extractResponse(jsonData);
                         if (typeof extracted === 'string') {
