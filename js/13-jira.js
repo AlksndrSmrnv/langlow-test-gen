@@ -163,8 +163,33 @@
                     // Parse extracted content (could be JSON string with status_code)
                     let statusInfo = null;
                     if (typeof extracted === 'string') {
-                        const extractedParsed = tryParseJson(extracted);
-                        log('[JIRA] Step 4a - Parsed extracted string:', extractedParsed.value);
+                        // Try to parse as-is first
+                        let extractedParsed = tryParseJson(extracted);
+                        log('[JIRA] Step 4a - First parse attempt:', extractedParsed.value);
+
+                        // If failed and string looks escaped, try double-parse
+                        // (Langflow sometimes returns double-encoded JSON strings)
+                        if (!extractedParsed.value && extracted.includes('\\')) {
+                            log('[JIRA] Step 4b - String contains escapes, trying double parse:', null);
+                            try {
+                                // First parse: remove one layer of encoding
+                                const onceParsed = JSON.parse(extracted);
+                                log('[JIRA] Step 4c - After first parse (type):', typeof onceParsed);
+                                log('[JIRA] Step 4d - After first parse (value):', onceParsed?.substring ? onceParsed.substring(0, 500) : onceParsed);
+
+                                // Second parse if still string
+                                if (typeof onceParsed === 'string') {
+                                    extractedParsed = tryParseJson(onceParsed);
+                                    log('[JIRA] Step 4e - After second parse:', extractedParsed.value);
+                                } else {
+                                    extractedParsed = { value: onceParsed, error: null, tried: true };
+                                    log('[JIRA] Step 4f - Using once-parsed object:', onceParsed);
+                                }
+                            } catch (doubleParseError) {
+                                log('[JIRA] Step 4g - Double parse failed:', doubleParseError.message);
+                            }
+                        }
+
                         if (extractedParsed.tried && extractedParsed.error && !parseError) {
                             parseError = extractedParsed.error;
                         }
