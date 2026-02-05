@@ -96,6 +96,24 @@
                     console.log('HTTP Status:', res.status);
                     console.log('Raw Response:', raw);
 
+                    const stripMarkdownCodeBlock = text => {
+                        if (!text || typeof text !== 'string') return text;
+
+                        // Remove markdown code block markers (```json ... ``` or ``` ... ```)
+                        let cleaned = text.trim();
+
+                        // Check if starts with ``` (with optional language identifier)
+                        if (cleaned.startsWith('```')) {
+                            // Remove opening ```json or ```
+                            cleaned = cleaned.replace(/^```[a-z]*\n?/i, '');
+                            // Remove closing ```
+                            cleaned = cleaned.replace(/\n?```$/, '');
+                            cleaned = cleaned.trim();
+                        }
+
+                        return cleaned;
+                    };
+
                     const tryParseJson = text => {
                         const t = (text || '').trim();
                         if (!t || (!t.startsWith('{') && !t.startsWith('['))) {
@@ -163,30 +181,34 @@
                     // Parse extracted content (could be JSON string with status_code)
                     let statusInfo = null;
                     if (typeof extracted === 'string') {
-                        // Try to parse as-is first
-                        let extractedParsed = tryParseJson(extracted);
-                        log('[JIRA] Step 4a - First parse attempt:', extractedParsed.value);
+                        // Remove markdown code block if present
+                        const cleaned = stripMarkdownCodeBlock(extracted);
+                        log('[JIRA] Step 4a - After markdown strip:', cleaned?.substring ? cleaned.substring(0, 500) : cleaned);
+
+                        // Try to parse cleaned string
+                        let extractedParsed = tryParseJson(cleaned);
+                        log('[JIRA] Step 4b - First parse attempt:', extractedParsed.value);
 
                         // If failed and string looks escaped, try double-parse
                         // (Langflow sometimes returns double-encoded JSON strings)
-                        if (!extractedParsed.value && extracted.includes('\\')) {
-                            log('[JIRA] Step 4b - String contains escapes, trying double parse:', null);
+                        if (!extractedParsed.value && cleaned.includes('\\')) {
+                            log('[JIRA] Step 4c - String contains escapes, trying double parse:', null);
                             try {
                                 // First parse: remove one layer of encoding
-                                const onceParsed = JSON.parse(extracted);
-                                log('[JIRA] Step 4c - After first parse (type):', typeof onceParsed);
-                                log('[JIRA] Step 4d - After first parse (value):', onceParsed?.substring ? onceParsed.substring(0, 500) : onceParsed);
+                                const onceParsed = JSON.parse(cleaned);
+                                log('[JIRA] Step 4d - After first parse (type):', typeof onceParsed);
+                                log('[JIRA] Step 4e - After first parse (value):', onceParsed?.substring ? onceParsed.substring(0, 500) : onceParsed);
 
                                 // Second parse if still string
                                 if (typeof onceParsed === 'string') {
                                     extractedParsed = tryParseJson(onceParsed);
-                                    log('[JIRA] Step 4e - After second parse:', extractedParsed.value);
+                                    log('[JIRA] Step 4f - After second parse:', extractedParsed.value);
                                 } else {
                                     extractedParsed = { value: onceParsed, error: null, tried: true };
-                                    log('[JIRA] Step 4f - Using once-parsed object:', onceParsed);
+                                    log('[JIRA] Step 4g - Using once-parsed object:', onceParsed);
                                 }
                             } catch (doubleParseError) {
-                                log('[JIRA] Step 4g - Double parse failed:', doubleParseError.message);
+                                log('[JIRA] Step 4h - Double parse failed:', doubleParseError.message);
                             }
                         }
 
@@ -199,7 +221,7 @@
                     } else if (extracted && typeof extracted === 'object') {
                         // Try to get status_code from extracted object
                         statusInfo = getStatusInfo(extracted);
-                        log('[JIRA] Step 4b - StatusInfo from extracted object:', statusInfo);
+                        log('[JIRA] Step 5b - StatusInfo from extracted object:', statusInfo);
                     }
 
                     // Fallback: try original jsonData if no status_code found in extracted
