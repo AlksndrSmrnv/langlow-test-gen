@@ -92,6 +92,10 @@
                     const raw = await res.text();
                     const trimmed = raw.trim();
 
+                    console.log('=== JIRA RESPONSE FOR TEST:', test.id, '===');
+                    console.log('HTTP Status:', res.status);
+                    console.log('Raw Response:', raw);
+
                     const tryParseJson = text => {
                         const t = (text || '').trim();
                         if (!t || (!t.startsWith('{') && !t.startsWith('['))) {
@@ -209,6 +213,9 @@
                         msg = `Ошибка ${res.status}: ${raw || res.statusText || 'Без текста ошибки'}`;
                     }
 
+                    // Add debug info to message for troubleshooting
+                    msg += `\n\n[DEBUG] HTTP: ${res.status}, Langflow status_code: ${langflowStatus || 'not found'}, extracted type: ${typeof extracted}`;
+
                     return {
                         ok: isSuccess,
                         name: test.id,
@@ -254,19 +261,34 @@
                 dom.jiraStatus.appendChild(item);
             });
 
-            // Add debug button
-            if (window.jiraDebugLogs && window.jiraDebugLogs.length > 0) {
-                const debugBtn = document.createElement('button');
-                debugBtn.textContent = '🐛 Показать debug логи';
-                debugBtn.style.cssText = 'margin-top: 16px; padding: 8px 16px; cursor: pointer;';
-                debugBtn.onclick = () => {
-                    const logText = window.jiraDebugLogs.map(l => `${l.msg}\n${l.data}`).join('\n\n');
-                    alert(logText);
-                    console.log('=== JIRA DEBUG LOGS ===');
-                    window.jiraDebugLogs.forEach(l => console.log(l.msg, l.data));
-                };
-                dom.jiraStatus.appendChild(debugBtn);
-            }
+            // Add debug button (always show)
+            const debugBtn = document.createElement('button');
+            debugBtn.textContent = '🐛 Показать debug логи';
+            debugBtn.style.cssText = 'margin-top: 16px; padding: 8px 16px; cursor: pointer; background: #f0f0f0; border: 1px solid #ccc; border-radius: 4px;';
+            debugBtn.onclick = () => {
+                if (!window.jiraDebugLogs || window.jiraDebugLogs.length === 0) {
+                    alert('Логи пусты. Проверьте консоль браузера (F12).');
+                    return;
+                }
+                const logText = window.jiraDebugLogs.map(l => `${l.msg}\n${l.data}`).join('\n\n');
+                const textArea = document.createElement('textarea');
+                textArea.value = logText;
+                textArea.style.cssText = 'width: 100%; height: 400px; font-family: monospace; font-size: 12px;';
+                const modal = document.createElement('div');
+                modal.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid #333; z-index: 10000; width: 80%; max-width: 800px;';
+                modal.innerHTML = '<h3>Debug Логи JIRA</h3>';
+                modal.appendChild(textArea);
+                const closeBtn = document.createElement('button');
+                closeBtn.textContent = 'Закрыть';
+                closeBtn.style.cssText = 'margin-top: 10px; padding: 8px 16px; cursor: pointer;';
+                closeBtn.onclick = () => document.body.removeChild(modal);
+                modal.appendChild(closeBtn);
+                document.body.appendChild(modal);
+
+                console.log('=== JIRA DEBUG LOGS ===');
+                window.jiraDebugLogs.forEach(l => console.log(l.msg, l.data));
+            };
+            dom.jiraStatus.appendChild(debugBtn);
         } finally {
             state.isSendingJira = false;
             updateJiraSendButtonState();
