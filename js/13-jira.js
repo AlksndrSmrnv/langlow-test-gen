@@ -38,9 +38,6 @@
         // Защита от повторных кликов
         if (state.isSendingJira) return;
 
-        // Debug storage
-        window.jiraDebugLogs = [];
-
         const validation = validateJiraFields();
         if (!validation.valid) {
             const errorMsg = `Заполните обязательные поля:\n• ${validation.errors.join('\n• ')}`;
@@ -91,10 +88,6 @@
                     });
                     const raw = await res.text();
                     const trimmed = raw.trim();
-
-                    console.log('=== JIRA RESPONSE FOR TEST:', test.id, '===');
-                    console.log('HTTP Status:', res.status);
-                    console.log('Raw Response:', raw);
 
                     const stripMarkdownCodeBlock = text => {
                         if (!text || typeof text !== 'string') return text;
@@ -163,52 +156,34 @@
                     let jsonData = parsed.value;
                     let parseError = parsed.error;
 
-                    const log = (msg, data) => {
-                        console.log(msg, data);
-                        window.jiraDebugLogs.push({ msg, data: JSON.stringify(data, null, 2) });
-                    };
-
-                    log('[JIRA] Test name:', test.id);
-                    log('[JIRA] Step 1 - Raw response (first 500):', trimmed.substring(0, 500));
-                    log('[JIRA] Step 2 - Parsed jsonData:', jsonData);
-
                     // Extract inner response from Langflow wrapper (like in generation.js)
                     // This gets the actual JIRA response from outputs[0].outputs[0].results.message.text
                     const extracted = extractResponse(jsonData);
-                    log('[JIRA] Step 3 - Extracted type:', typeof extracted);
-                    log('[JIRA] Step 3 - Extracted content:', extracted?.substring ? extracted.substring(0, 500) : extracted);
 
                     // Parse extracted content (could be JSON string with status_code)
                     let statusInfo = null;
                     if (typeof extracted === 'string') {
-                        // Remove markdown code block if present
+                        // Remove markdown code block if present (Langflow wraps JSON in ```json ... ```)
                         const cleaned = stripMarkdownCodeBlock(extracted);
-                        log('[JIRA] Step 4a - After markdown strip:', cleaned?.substring ? cleaned.substring(0, 500) : cleaned);
 
                         // Try to parse cleaned string
                         let extractedParsed = tryParseJson(cleaned);
-                        log('[JIRA] Step 4b - First parse attempt:', extractedParsed.value);
 
                         // If failed and string looks escaped, try double-parse
                         // (Langflow sometimes returns double-encoded JSON strings)
                         if (!extractedParsed.value && cleaned.includes('\\')) {
-                            log('[JIRA] Step 4c - String contains escapes, trying double parse:', null);
                             try {
                                 // First parse: remove one layer of encoding
                                 const onceParsed = JSON.parse(cleaned);
-                                log('[JIRA] Step 4d - After first parse (type):', typeof onceParsed);
-                                log('[JIRA] Step 4e - After first parse (value):', onceParsed?.substring ? onceParsed.substring(0, 500) : onceParsed);
 
                                 // Second parse if still string
                                 if (typeof onceParsed === 'string') {
                                     extractedParsed = tryParseJson(onceParsed);
-                                    log('[JIRA] Step 4f - After second parse:', extractedParsed.value);
                                 } else {
                                     extractedParsed = { value: onceParsed, error: null, tried: true };
-                                    log('[JIRA] Step 4g - Using once-parsed object:', onceParsed);
                                 }
                             } catch (doubleParseError) {
-                                log('[JIRA] Step 4h - Double parse failed:', doubleParseError.message);
+                                // Silent fail - will try fallback
                             }
                         }
 
@@ -217,18 +192,14 @@
                         }
                         // Try to get status_code from parsed extracted content
                         statusInfo = getStatusInfo(extractedParsed.value);
-                        log('[JIRA] Step 5a - StatusInfo from parsed string:', statusInfo);
                     } else if (extracted && typeof extracted === 'object') {
                         // Try to get status_code from extracted object
                         statusInfo = getStatusInfo(extracted);
-                        log('[JIRA] Step 5b - StatusInfo from extracted object:', statusInfo);
                     }
 
                     // Fallback: try original jsonData if no status_code found in extracted
                     if (!statusInfo) {
-                        log('[JIRA] Step 6 - Trying fallback to original jsonData', null);
                         statusInfo = getStatusInfo(jsonData);
-                        log('[JIRA] Step 7 - StatusInfo from fallback:', statusInfo);
                     }
 
                     const langflowStatus = statusInfo ? statusInfo.status : null;
@@ -240,14 +211,6 @@
                     const isSuccess = (langflowStatus !== null)
                         ? (langflowStatus === 200 || langflowStatus === 201)
                         : (httpOk && !parseError);
-
-                    log('[JIRA] Final - HTTP status:', res.status);
-                    log('[JIRA] Final - HTTP OK:', httpOk);
-                    log('[JIRA] Final - Langflow status_code:', langflowStatus);
-                    log('[JIRA] Final - isSuccess:', isSuccess);
-                    log('[JIRA] Final - errorMessages:', statusInfo?.errorMessages);
-                    log('[JIRA] Final - langflowErrorMsg:', langflowErrorMsg);
-
                     let msg;
 
                     if (isSuccess) {
@@ -259,9 +222,6 @@
                     } else {
                         msg = `Ошибка ${res.status}: ${raw || res.statusText || 'Без текста ошибки'}`;
                     }
-
-                    // Add debug info to message for troubleshooting
-                    msg += `\n\n[DEBUG] HTTP: ${res.status}, Langflow status_code: ${langflowStatus || 'not found'}, extracted type: ${typeof extracted}`;
 
                     return {
                         ok: isSuccess,
@@ -307,35 +267,6 @@
                 item.appendChild(messageDiv);
                 dom.jiraStatus.appendChild(item);
             });
-
-            // Add debug button (always show)
-            const debugBtn = document.createElement('button');
-            debugBtn.textContent = '🐛 Показать debug логи';
-            debugBtn.style.cssText = 'margin-top: 16px; padding: 8px 16px; cursor: pointer; background: #f0f0f0; border: 1px solid #ccc; border-radius: 4px;';
-            debugBtn.onclick = () => {
-                if (!window.jiraDebugLogs || window.jiraDebugLogs.length === 0) {
-                    alert('Логи пусты. Проверьте консоль браузера (F12).');
-                    return;
-                }
-                const logText = window.jiraDebugLogs.map(l => `${l.msg}\n${l.data}`).join('\n\n');
-                const textArea = document.createElement('textarea');
-                textArea.value = logText;
-                textArea.style.cssText = 'width: 100%; height: 400px; font-family: monospace; font-size: 12px;';
-                const modal = document.createElement('div');
-                modal.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid #333; z-index: 10000; width: 80%; max-width: 800px;';
-                modal.innerHTML = '<h3>Debug Логи JIRA</h3>';
-                modal.appendChild(textArea);
-                const closeBtn = document.createElement('button');
-                closeBtn.textContent = 'Закрыть';
-                closeBtn.style.cssText = 'margin-top: 10px; padding: 8px 16px; cursor: pointer;';
-                closeBtn.onclick = () => document.body.removeChild(modal);
-                modal.appendChild(closeBtn);
-                document.body.appendChild(modal);
-
-                console.log('=== JIRA DEBUG LOGS ===');
-                window.jiraDebugLogs.forEach(l => console.log(l.msg, l.data));
-            };
-            dom.jiraStatus.appendChild(debugBtn);
         } finally {
             state.isSendingJira = false;
             updateJiraSendButtonState();
