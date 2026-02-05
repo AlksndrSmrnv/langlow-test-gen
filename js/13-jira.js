@@ -38,6 +38,9 @@
         // Защита от повторных кликов
         if (state.isSendingJira) return;
 
+        // Debug storage
+        window.jiraDebugLogs = [];
+
         const validation = validateJiraFields();
         if (!validation.valid) {
             const errorMsg = `Заполните обязательные поля:\n• ${validation.errors.join('\n• ')}`;
@@ -138,27 +141,43 @@
                     let jsonData = parsed.value;
                     let parseError = parsed.error;
 
+                    const log = (msg, data) => {
+                        console.log(msg, data);
+                        window.jiraDebugLogs.push({ msg, data: JSON.stringify(data, null, 2) });
+                    };
+
+                    log('[JIRA] Test name:', test.id);
+                    log('[JIRA] Step 1 - Raw response (first 500):', trimmed.substring(0, 500));
+                    log('[JIRA] Step 2 - Parsed jsonData:', jsonData);
+
                     // Extract inner response from Langflow wrapper (like in generation.js)
                     // This gets the actual JIRA response from outputs[0].outputs[0].results.message.text
                     const extracted = extractResponse(jsonData);
+                    log('[JIRA] Step 3 - Extracted type:', typeof extracted);
+                    log('[JIRA] Step 3 - Extracted content:', extracted?.substring ? extracted.substring(0, 500) : extracted);
 
                     // Parse extracted content (could be JSON string with status_code)
                     let statusInfo = null;
                     if (typeof extracted === 'string') {
                         const extractedParsed = tryParseJson(extracted);
+                        log('[JIRA] Step 4a - Parsed extracted string:', extractedParsed.value);
                         if (extractedParsed.tried && extractedParsed.error && !parseError) {
                             parseError = extractedParsed.error;
                         }
                         // Try to get status_code from parsed extracted content
                         statusInfo = getStatusInfo(extractedParsed.value);
+                        log('[JIRA] Step 5a - StatusInfo from parsed string:', statusInfo);
                     } else if (extracted && typeof extracted === 'object') {
                         // Try to get status_code from extracted object
                         statusInfo = getStatusInfo(extracted);
+                        log('[JIRA] Step 4b - StatusInfo from extracted object:', statusInfo);
                     }
 
                     // Fallback: try original jsonData if no status_code found in extracted
                     if (!statusInfo) {
+                        log('[JIRA] Step 6 - Trying fallback to original jsonData', null);
                         statusInfo = getStatusInfo(jsonData);
+                        log('[JIRA] Step 7 - StatusInfo from fallback:', statusInfo);
                     }
 
                     const langflowStatus = statusInfo ? statusInfo.status : null;
@@ -170,6 +189,14 @@
                     const isSuccess = (langflowStatus !== null)
                         ? (langflowStatus === 200 || langflowStatus === 201)
                         : (httpOk && !parseError);
+
+                    log('[JIRA] Final - HTTP status:', res.status);
+                    log('[JIRA] Final - HTTP OK:', httpOk);
+                    log('[JIRA] Final - Langflow status_code:', langflowStatus);
+                    log('[JIRA] Final - isSuccess:', isSuccess);
+                    log('[JIRA] Final - errorMessages:', statusInfo?.errorMessages);
+                    log('[JIRA] Final - langflowErrorMsg:', langflowErrorMsg);
+
                     let msg;
 
                     if (isSuccess) {
@@ -226,6 +253,20 @@
                 item.appendChild(messageDiv);
                 dom.jiraStatus.appendChild(item);
             });
+
+            // Add debug button
+            if (window.jiraDebugLogs && window.jiraDebugLogs.length > 0) {
+                const debugBtn = document.createElement('button');
+                debugBtn.textContent = '🐛 Показать debug логи';
+                debugBtn.style.cssText = 'margin-top: 16px; padding: 8px 16px; cursor: pointer;';
+                debugBtn.onclick = () => {
+                    const logText = window.jiraDebugLogs.map(l => `${l.msg}\n${l.data}`).join('\n\n');
+                    alert(logText);
+                    console.log('=== JIRA DEBUG LOGS ===');
+                    window.jiraDebugLogs.forEach(l => console.log(l.msg, l.data));
+                };
+                dom.jiraStatus.appendChild(debugBtn);
+            }
         } finally {
             state.isSendingJira = false;
             updateJiraSendButtonState();
