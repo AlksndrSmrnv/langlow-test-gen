@@ -76,11 +76,46 @@
                         headers: headers(settings.apiKey),
                         body: JSON.stringify(buildBody(xmlData, settings.format, sessionId()))
                     });
-                    const isSuccess = res.status >= 200 && res.status < 300;
+                    const contentType = res.headers.get('content-type') || '';
+                    const raw = await res.text();
+                    let jsonData = null;
+                    let parseError = null;
+
+                    if (contentType.includes('application/json')) {
+                        try {
+                            jsonData = JSON.parse(raw);
+                        } catch (e) {
+                            parseError = e;
+                        }
+                    }
+
+                    let langflowErrorMsg = null;
+                    if (jsonData && typeof jsonData === 'object' && Object.prototype.hasOwnProperty.call(jsonData, 'status_code')) {
+                        const statusCode = Number(jsonData.status_code);
+                        if (statusCode !== 200 && statusCode !== 201) {
+                            langflowErrorMsg = jsonData?.result?.errorMessages?.[0]
+                                || `Ошибка Langflow: status_code ${jsonData.status_code}`;
+                        }
+                    }
+
+                    const httpOk = res.status >= 200 && res.status < 300;
+                    const isSuccess = httpOk && !langflowErrorMsg && !parseError;
+                    let msg;
+
+                    if (isSuccess) {
+                        msg = 'Успешно отправлено';
+                    } else if (langflowErrorMsg) {
+                        msg = langflowErrorMsg;
+                    } else if (parseError) {
+                        msg = `Ошибка парсинга JSON: ${parseError.message}`;
+                    } else {
+                        msg = `Ошибка ${res.status}: ${raw || res.statusText || 'Без текста ошибки'}`;
+                    }
+
                     return {
                         ok: isSuccess,
                         name: test.id,
-                        msg: isSuccess ? 'Успешно отправлено' : `Ошибка ${res.status}: ${await res.text()}`
+                        msg
                     };
                 } catch (e) {
                     return { ok: false, name: test.id, msg: e.message };
