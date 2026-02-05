@@ -133,31 +133,32 @@
                         return null;
                     };
 
+                    // Parse response JSON (Langflow wrapper)
                     const parsed = tryParseJson(trimmed);
                     let jsonData = parsed.value;
                     let parseError = parsed.error;
 
-                    // Primary: try to get status_code from direct JSON
-                    let statusInfo = getStatusInfo(jsonData);
+                    // Extract inner response from Langflow wrapper (like in generation.js)
+                    // This gets the actual JIRA response from outputs[0].outputs[0].results.message.text
+                    const extracted = extractResponse(jsonData);
 
-                    // Secondary: if jsonData is string, parse and try again
-                    if (!statusInfo && typeof jsonData === 'string') {
-                        const nested = tryParseJson(jsonData);
-                        if (!parseError && nested.tried && nested.error) parseError = nested.error;
-                        statusInfo = getStatusInfo(nested.value);
+                    // Parse extracted content (could be JSON string with status_code)
+                    let statusInfo = null;
+                    if (typeof extracted === 'string') {
+                        const extractedParsed = tryParseJson(extracted);
+                        if (extractedParsed.tried && extractedParsed.error && !parseError) {
+                            parseError = extractedParsed.error;
+                        }
+                        // Try to get status_code from parsed extracted content
+                        statusInfo = getStatusInfo(extractedParsed.value);
+                    } else if (extracted && typeof extracted === 'object') {
+                        // Try to get status_code from extracted object
+                        statusInfo = getStatusInfo(extracted);
                     }
 
-                    // Tertiary: only use extractResponse if no status_code found
-                    // (extractResponse may return r.result which loses status_code)
-                    if (!statusInfo && jsonData && typeof jsonData === 'object') {
-                        const extracted = extractResponse(jsonData);
-                        if (typeof extracted === 'string') {
-                            const extractedParsed = tryParseJson(extracted);
-                            if (!parseError && extractedParsed.tried && extractedParsed.error) parseError = extractedParsed.error;
-                            statusInfo = getStatusInfo(extractedParsed.value);
-                        } else if (extracted && typeof extracted === 'object') {
-                            statusInfo = getStatusInfo(extracted);
-                        }
+                    // Fallback: try original jsonData if no status_code found in extracted
+                    if (!statusInfo) {
+                        statusInfo = getStatusInfo(jsonData);
                     }
 
                     const langflowStatus = statusInfo ? statusInfo.status : null;
