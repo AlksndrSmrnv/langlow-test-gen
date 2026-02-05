@@ -3,7 +3,7 @@
 
     const { config, state, utils, xml } = TG;
     const { dom } = state;
-    const { getSettings, buildBody, headers, sessionId, $ } = utils;
+    const { getSettings, buildBody, headers, sessionId, extractResponse, $ } = utils;
     const { buildJiraXML } = xml;
 
     const validateJiraFields = () => {
@@ -78,27 +78,64 @@
                     });
                     const raw = await res.text();
                     const trimmed = raw.trim();
-                    let jsonData = null;
-                    let parseError = null;
 
-                    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+                    const tryParseJson = text => {
+                        const t = (text || '').trim();
+                        if (!t || (!t.startsWith('{') && !t.startsWith('['))) {
+                            return { value: null, error: null, tried: false };
+                        }
                         try {
-                            jsonData = JSON.parse(trimmed);
+                            return { value: JSON.parse(t), error: null, tried: true };
                         } catch (e) {
-                            parseError = e;
+                            return { value: null, error: e, tried: true };
+                        }
+                    };
+
+                    const getStatusInfo = obj => {
+                        if (!obj || typeof obj !== 'object') return null;
+                        if (Object.prototype.hasOwnProperty.call(obj, 'status_code')) {
+                            const statusCode = Number(obj.status_code);
+                            if (!Number.isNaN(statusCode)) {
+                                const errMsg = obj?.result?.errorMessages?.[0] || obj?.errorMessages?.[0] || null;
+                                return { status: statusCode, errorMsg: errMsg };
+                            }
+                        }
+                        if (obj.result && typeof obj.result === 'object' && Object.prototype.hasOwnProperty.call(obj.result, 'status_code')) {
+                            const statusCode = Number(obj.result.status_code);
+                            if (!Number.isNaN(statusCode)) {
+                                const errMsg = obj.result?.errorMessages?.[0] || null;
+                                return { status: statusCode, errorMsg: errMsg };
+                            }
+                        }
+                        return null;
+                    };
+
+                    const parsed = tryParseJson(trimmed);
+                    let jsonData = parsed.value;
+                    let parseError = parsed.error;
+                    let statusInfo = getStatusInfo(jsonData);
+
+                    if (!statusInfo && typeof jsonData === 'string') {
+                        const nested = tryParseJson(jsonData);
+                        if (!parseError && nested.tried && nested.error) parseError = nested.error;
+                        statusInfo = getStatusInfo(nested.value);
+                    }
+
+                    if (!statusInfo && jsonData && typeof jsonData === 'object') {
+                        const extracted = extractResponse(jsonData);
+                        if (typeof extracted === 'string') {
+                            const extractedParsed = tryParseJson(extracted);
+                            if (!parseError && extractedParsed.tried && extractedParsed.error) parseError = extractedParsed.error;
+                            statusInfo = getStatusInfo(extractedParsed.value);
+                        } else if (extracted && typeof extracted === 'object') {
+                            statusInfo = getStatusInfo(extracted);
                         }
                     }
 
-                    let langflowStatus = null;
-                    let langflowErrorMsg = null;
-                    if (jsonData && typeof jsonData === 'object' && Object.prototype.hasOwnProperty.call(jsonData, 'status_code')) {
-                        const statusCode = Number(jsonData.status_code);
-                        if (!Number.isNaN(statusCode)) langflowStatus = statusCode;
-                        if (statusCode !== 200 && statusCode !== 201) {
-                            langflowErrorMsg = jsonData?.result?.errorMessages?.[0]
-                                || `Ошибка Langflow: status_code ${jsonData.status_code}`;
-                        }
-                    }
+                    const langflowStatus = statusInfo ? statusInfo.status : null;
+                    const langflowErrorMsg = (statusInfo && (langflowStatus !== 200 && langflowStatus !== 201))
+                        ? (statusInfo.errorMsg || `Ошибка Langflow: status_code ${langflowStatus}`)
+                        : null;
 
                     const httpOk = res.status >= 200 && res.status < 300;
                     const isSuccess = (langflowStatus !== null)
