@@ -1138,12 +1138,33 @@ textarea::placeholder {
 }
 
 .jira-status-item {
-    padding: 8px 0;
+    padding: 12px 0;
     border-bottom: 1px solid var(--border);
 }
 
 .jira-status-item:last-child {
     border-bottom: none;
+}
+
+.jira-status-test-name {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text);
+}
+
+.jira-status-message {
+    font-size: 0.9em;
+    line-height: 1.6;
+    padding-left: 8px;
+}
+
+.jira-status-message.error {
+    color: var(--error-text);
+    white-space: pre-line; /* Preserve line breaks */
+}
+
+.jira-status-message.success {
+    color: #065F46;
 }
 
 /* Error/Plain Text */
