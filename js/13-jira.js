@@ -76,22 +76,24 @@
                         headers: headers(settings.apiKey),
                         body: JSON.stringify(buildBody(xmlData, settings.format, sessionId()))
                     });
-                    const contentType = res.headers.get('content-type') || '';
                     const raw = await res.text();
+                    const trimmed = raw.trim();
                     let jsonData = null;
                     let parseError = null;
 
-                    if (contentType.includes('application/json')) {
+                    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
                         try {
-                            jsonData = JSON.parse(raw);
+                            jsonData = JSON.parse(trimmed);
                         } catch (e) {
                             parseError = e;
                         }
                     }
 
+                    let langflowStatus = null;
                     let langflowErrorMsg = null;
                     if (jsonData && typeof jsonData === 'object' && Object.prototype.hasOwnProperty.call(jsonData, 'status_code')) {
                         const statusCode = Number(jsonData.status_code);
+                        if (!Number.isNaN(statusCode)) langflowStatus = statusCode;
                         if (statusCode !== 200 && statusCode !== 201) {
                             langflowErrorMsg = jsonData?.result?.errorMessages?.[0]
                                 || `Ошибка Langflow: status_code ${jsonData.status_code}`;
@@ -99,7 +101,9 @@
                     }
 
                     const httpOk = res.status >= 200 && res.status < 300;
-                    const isSuccess = httpOk && !langflowErrorMsg && !parseError;
+                    const isSuccess = (langflowStatus !== null)
+                        ? (langflowStatus === 200 || langflowStatus === 201)
+                        : (httpOk && !parseError);
                     let msg;
 
                     if (isSuccess) {
