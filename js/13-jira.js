@@ -24,6 +24,16 @@
         };
     };
 
+    const formatJiraError = (statusCode, errorMessages) => {
+        let msg = `Ошибка JIRA (status_code: ${statusCode})`;
+
+        if (errorMessages && errorMessages.length > 0) {
+            msg += '\n' + errorMessages.map(err => `  • ${err}`).join('\n');
+        }
+
+        return msg;
+    };
+
     const sendJira = async () => {
         // Защита от повторных кликов
         if (state.isSendingJira) return;
@@ -93,20 +103,37 @@
 
                     const getStatusInfo = obj => {
                         if (!obj || typeof obj !== 'object') return null;
+                        let status = null;
+                        let errorMessages = null;
+
+                        // Extract status_code (root level)
                         if (Object.prototype.hasOwnProperty.call(obj, 'status_code')) {
                             const statusCode = Number(obj.status_code);
                             if (!Number.isNaN(statusCode)) {
-                                const errMsg = obj?.result?.errorMessages?.[0] || obj?.errorMessages?.[0] || null;
-                                return { status: statusCode, errorMsg: errMsg };
+                                status = statusCode;
+                                // Extract errorMessages array if status is not success
+                                if (status !== 200 && status !== 201) {
+                                    const errArr = obj.errorMessages || (obj.result && obj.result.errorMessages) || [];
+                                    errorMessages = errArr.length > 0 ? errArr : null;
+                                }
+                                return { status, errorMessages };
                             }
                         }
+
+                        // Extract status_code (nested in result)
                         if (obj.result && typeof obj.result === 'object' && Object.prototype.hasOwnProperty.call(obj.result, 'status_code')) {
                             const statusCode = Number(obj.result.status_code);
                             if (!Number.isNaN(statusCode)) {
-                                const errMsg = obj.result?.errorMessages?.[0] || null;
-                                return { status: statusCode, errorMsg: errMsg };
+                                status = statusCode;
+                                // Extract errorMessages array if status is not success
+                                if (status !== 200 && status !== 201) {
+                                    const errArr = obj.result.errorMessages || [];
+                                    errorMessages = errArr.length > 0 ? errArr : null;
+                                }
+                                return { status, errorMessages };
                             }
                         }
+
                         return null;
                     };
 
@@ -134,7 +161,7 @@
 
                     const langflowStatus = statusInfo ? statusInfo.status : null;
                     const langflowErrorMsg = (statusInfo && (langflowStatus !== 200 && langflowStatus !== 201))
-                        ? (statusInfo.errorMsg || `Ошибка Langflow: status_code ${langflowStatus}`)
+                        ? formatJiraError(langflowStatus, statusInfo.errorMessages)
                         : null;
 
                     const httpOk = res.status >= 200 && res.status < 300;
@@ -179,11 +206,22 @@
                 const item = document.createElement('div');
                 item.className = 'jira-status-item';
 
-                const strong = document.createElement('strong');
-                strong.textContent = `${r.name}: `;
+                // Create test name container
+                const testNameDiv = document.createElement('div');
+                testNameDiv.className = 'jira-status-test-name';
+                testNameDiv.textContent = r.name;
 
-                item.appendChild(strong);
-                item.appendChild(document.createTextNode(`${r.ok ? '✓' : '✕'} ${r.msg}`));
+                // Create status message container
+                const statusIcon = r.ok ? '✓' : '✕';
+                const escapedMsg = utils.escapeHtml(r.msg);
+                const formattedMsg = escapedMsg.replace(/\n/g, '<br>');
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `jira-status-message ${r.ok ? 'success' : 'error'}`;
+                messageDiv.innerHTML = `${statusIcon} ${formattedMsg}`;
+
+                item.appendChild(testNameDiv);
+                item.appendChild(messageDiv);
                 dom.jiraStatus.appendChild(item);
             });
         } finally {
